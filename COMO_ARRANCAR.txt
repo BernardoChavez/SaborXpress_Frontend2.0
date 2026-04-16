@@ -1,0 +1,71 @@
+========================================
+  CÓMO ARRANCAR SABORXPRESS
+========================================
+
+REQUISITOS:
+- Laragon instalado y corriendo (Apache/Nginx + PostgreSQL)
+- Node.js instalado
+- Base de datos "sabor_xpress_db" creada en PostgreSQL
+
+========================================
+PASO 1: BACKEND (Laravel)
+========================================
+1. Abre Laragon y asegúrate de que esté encendido (Start All)
+2. El backend ya está disponible automáticamente en:
+   http://saborxpress-backend.test
+3. La API está en:
+   http://saborxpress-backend.test/api
+
+   (No necesitas ejecutar "php artisan serve" si usas Laragon)
+
+========================================
+PASO 2: FRONTEND (React + Vite)
+========================================
+1. Abre una terminal en la carpeta del frontend:
+   cd C:\Users\chave\saborxpress-front
+
+2. Instala dependencias (solo la primera vez):
+   npm install
+
+3. Arranca el servidor de desarrollo:
+   npm run dev
+
+4. Abre el navegador en:
+   http://localhost:5173
+
+========================================
+PASO 3: INICIAR SESIÓN
+========================================
+1. Ingresa con un correo y contraseña de un usuario Admin
+   que esté registrado en tu base de datos.
+2. Campos del formulario:
+   - Correo electrónico
+   - Contraseña
+
+========================================
+ESTRUCTURA DEL FRONTEND
+========================================
+src/
+├── api/               → Axios + servicios de API
+├── core/              → Store (Zustand), types, router
+├── layouts/           → MainLayout, AuthLayout
+├── modules/
+│   ├── auth/          → Login, Unauthorized, useAuth
+│   ├── dashboard/     → Dashboard con resumen
+│   ├── usuarios/      → CRUD de usuarios (CU 3, CU 5)
+│   ├── catalogo/      → Categorías + Productos (CU 9)
+│   └── bitacora/      → Bitácora solo lectura (CU 6)
+└── shared/components/ → Sidebar, Header, ProtectedRoute
+
+========================================
+NOTAS IMPORTANTES
+========================================
+- El archivo .env del frontend está en:
+  C:\Users\chave\saborxpress-front\.env
+  Contiene: VITE_API_URL=http://saborxpress-backend.test/api
+
+- Si cambias el .env, debes reiniciar Vite (Ctrl+C y npm run dev)
+
+- Para detener el frontend: Ctrl+C en la terminal
+
+========================================

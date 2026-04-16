@@ -1,0 +1,127 @@
+================================================================================
+GUIA DE CASOS DE USO Y ESTRUCTURA DEL PROYECTO - SABORXPRESS FRONTEND
+================================================================================
+
+Esta guía te ayuda a ubicar rápidamente dónde está el código correspondiente a cada 
+funcionalidad o caso de uso. Si te piden revisar, modificar o mostrar alguna 
+parte del sistema, aquí tienes en qué archivos buscar.
+
+--------------------------------------------------------------------------------
+1. AUTENTICACIÓN Y SEGURIDAD (Login, Logout, Permisos)
+--------------------------------------------------------------------------------
+• Mostrar la pantalla de Login:
+  -> src/modules/auth/pages/LoginPage.tsx
+
+• ¿Dónde se hace la petición a la API para iniciar/cerrar sesión?:
+  -> src/api/services/authService.ts
+  -> src/modules/auth/hooks/useAuth.ts (Hook que puedes usar en cualquier lado)
+
+• ¿Dónde se guarda la sesión actual (usuario, token, rol)?
+  -> src/core/store/useAuthStore.ts (Usa Zustand para mantener el estado global)
+
+• ¿Dónde se protegen las páginas para que solo entren Admins u otros roles?
+  -> src/shared/components/ProtectedRoute.tsx
+  -> Se configuran las rutas en: src/core/router/router.tsx
+
+• Página de "Acceso Denegado" (cuando un rol no tiene permisos):
+  -> src/modules/auth/pages/UnauthorizedPage.tsx
+
+--------------------------------------------------------------------------------
+2. DASHBOARD / PANTALLA PRINCIPAL
+--------------------------------------------------------------------------------
+• Mostrar las tarjetas de resumen y actividad reciente:
+  -> src/modules/dashboard/pages/DashboardPage.tsx
+
+--------------------------------------------------------------------------------
+3. GESTIÓN DE USUARIOS (Roles, Personas, Empleados)
+--------------------------------------------------------------------------------
+• Mostrar la lista principal de usuarios y los botones de acción:
+  -> src/modules/usuarios/pages/UsuariosPage.tsx
+
+• Mostrar la tabla de usuarios:
+  -> src/modules/usuarios/components/UsuariosTable.tsx
+
+• Mostrar el formulario para Crear o Editar un usuario (Modal):
+  -> src/modules/usuarios/components/UsuarioModal.tsx
+
+• Mostrar la confirmación para Eliminar un usuario (Modal):
+  -> src/modules/usuarios/components/DeleteConfirmModal.tsx
+
+• Tarjetas que muestran cuántos Admins, Cajeros o Cocineros hay:
+  -> src/modules/usuarios/components/RoleCards.tsx
+
+• ¿Dónde se hacen las peticiones al backend para Usuarios?
+  -> src/modules/usuarios/usuarioService.ts
+
+--------------------------------------------------------------------------------
+4. CATÁLOGO (Categorías y Productos)
+--------------------------------------------------------------------------------
+• Mostrar la página principal del catálogo (pestañas de Categorías y Productos):
+  -> src/modules/catalogo/pages/CatalogoPage.tsx
+
+• Mostrar el formulario para Crear o Editar una CATEGORÍA (Modal):
+  -> src/modules/catalogo/components/CategoriaModal.tsx
+
+• Mostrar el formulario para Crear o Editar un PRODUCTO (Modal):
+  -> src/modules/catalogo/components/ProductoModal.tsx
+
+• Mostrar la confirmación para Eliminar en el catálogo (Modal genérico):
+  -> src/modules/catalogo/components/CatalogoDeleteModal.tsx
+
+• ¿Dónde se hacen las peticiones al backend para Categorías y Productos?
+  -> src/modules/catalogo/catalogoService.ts
+
+--------------------------------------------------------------------------------
+5. BITÁCORA DEL SISTEMA (Auditoría)
+--------------------------------------------------------------------------------
+• Mostrar la tabla con el historial de todo lo que hacen los usuarios:
+  -> src/modules/bitacora/pages/BitacoraPage.tsx
+
+• ¿Dónde se hacen las peticiones al backend para la Bitácora?
+  -> src/modules/bitacora/bitacoraService.ts
+
+--------------------------------------------------------------------------------
+6. NAVEGACIÓN Y ESTRUCTURA BASE (Layouts)
+--------------------------------------------------------------------------------
+• Si quieres agregar o quitar una ruta nueva al sistema:
+  -> src/core/router/router.tsx
+
+• Si quieres modificar el Menú Lateral (Sidebar) de la izquierda:
+  -> src/shared/components/Sidebar.tsx
+  (Aquí puedes agregar o quitar botones de navegación)
+
+• Si quieres modificar la Barra Superior (Header) donde sale el nombre del usuario:
+  -> src/shared/components/Header.tsx
+
+• Si quieres cambiar el diseño del esqueleto principal (cómo se acomoda el menú y el contenido):
+  -> src/layouts/MainLayout.tsx
+
+--------------------------------------------------------------------------------
+7. CONFIGURACIÓN GENERAL Y API
+--------------------------------------------------------------------------------
+• Configuración de las peticiones HTTP (Axios interceptors) donde se envía el Token y la URL base:
+  -> src/api/axios.ts
+
+• Estilos globales y colores:
+  -> src/index.css
+  (Usa Tailwind V4, las variables principales de color están aquí)
+
+
+================================================================================
+RESUMEN RÁPIDO PARA DEMOSTRACIONES:
+================================================================================
+- Si el profesor pide "Mostrame dónde haces el Listar/Crear Producto":
+  * Vas a `src/modules/catalogo/pages/CatalogoPage.tsx`
+  * Si te pide el formulario exacto: `src/modules/catalogo/components/ProductoModal.tsx`
+  * Si te pide de dónde saca la info: `src/modules/catalogo/catalogoService.ts`
+
+- Si pide "Mostrame el Listado y Creación de Usuarios":
+  * Vas a `src/modules/usuarios/pages/UsuariosPage.tsx`
+  * El formulario está en: `src/modules/usuarios/components/UsuarioModal.tsx`
+
+- Si te pide "Mostrame cómo proteges la ruta para que solo entre el Admin":
+  * Vas a `src/core/router/router.tsx` y le muestras el `<ProtectedRoute allowedRoles={['Admin']} />`
+  * También puedes mostrarle `src/shared/components/ProtectedRoute.tsx`
+
+- Si pide "Mostrame la configuración de red al comunicarse con Laravel":
+  * Vas a `src/api/axios.ts`
