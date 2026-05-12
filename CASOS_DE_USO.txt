@@ -1,5 +1,5 @@
 ================================================================================
-GUIA DE CASOS DE USO Y ESTRUCTURA DEL PROYECTO - SABORXPRESS FRONTEND
+GUIA DE CASOS DE USO Y ESTRUCTURA DEL PROYECTO - SABORXPRESS FRONTENDD
 ================================================================================
 
 Esta guía te ayuda a ubicar rápidamente dónde está el código correspondiente a cada 
