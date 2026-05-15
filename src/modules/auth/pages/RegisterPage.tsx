@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { User, Mail, Lock, Phone, ArrowLeft, UtensilsCrossed, ShieldCheck, CheckCircle2, Circle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { parseApiError } from '../../../utils/parseApiError';
@@ -28,7 +28,6 @@ const PasswordValidator = ({ password }: { password: string }) => {
 };
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
   const { register } = useAuth();
   
   const [formData, setFormData] = useState({

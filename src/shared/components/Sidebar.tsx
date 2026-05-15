@@ -7,13 +7,13 @@ import {
   ScrollText,
   ChevronLeft,
   ChevronRight,
-  UtensilsCrossed,
+  Utensils,
   Menu,
   X,
-  Building2,
-  ShieldAlert,
+  Building,
+  Shield,
   Package,
-  Store,
+  ShoppingBag,
   ChefHat,
   Wallet,
 } from 'lucide-react';
@@ -30,15 +30,15 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', to: '/', icon: <LayoutDashboard size={20} /> },
-  { label: 'Venta (POS)', to: '/pos', icon: <Store size={20} />, permission: 'CU17:ver' },
+  { label: 'Venta (POS)', to: '/pos', icon: <ShoppingBag size={20} />, permission: 'CU17:ver' },
   { label: 'Caja', to: '/caja', icon: <Wallet size={20} />, permission: 'CU16:ver' },
   { label: 'Cocina', to: '/cocina', icon: <ChefHat size={20} />, permission: 'CU20:ver' },
-  { label: 'Catálogo', to: '/admin/catalogo', icon: <UtensilsCrossed size={20} />, permission: 'CU8:ver' },
+  { label: 'Catálogo', to: '/admin/catalogo', icon: <Utensils size={20} />, permission: 'CU8:ver' },
   { label: 'Usuarios', to: '/admin/usuarios', icon: <Users size={20} />, permission: 'CU5:ver' },
   { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={20} />, permission: 'CU7:ver' },
-  { label: 'Empresa', to: '/admin/empresa', icon: <Building2 size={20} />, adminOnly: true },
+  { label: 'Empresa', to: '/admin/empresa', icon: <Building size={20} />, adminOnly: true },
   { label: 'Inventario', to: '/admin/inventario', icon: <Package size={20} />, permission: 'CU30:ver' },
-  { label: 'Roles', to: '/admin/roles', icon: <ShieldAlert size={20} />, permission: 'CU6:ver' },
+  { label: 'Roles', to: '/admin/roles', icon: <Shield size={20} />, permission: 'CU6:ver' },
 ];
 
 interface SidebarProps {
@@ -49,7 +49,7 @@ const EXPANDED_W = 240;
 const COLLAPSED_W = 68;
 
 const Sidebar = ({ tipoUsuario }: SidebarProps) => {
-  const permisos = useAuthStore((state) => state.permisos);
+  const permisos = useAuthStore((state) => state.permisos) as string[];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -58,11 +58,12 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const visibleItems = navItems.filter((item) => {
-    if (tipoUsuario === 'Admin') return true;
-    if (item.adminOnly && tipoUsuario !== 'Admin') return false;
+  const visibleItems = navItems.filter((item: any) => {
+    const rolActual: any = tipoUsuario || '';
+    if (rolActual === 'Admin') return true;
+    if (item.adminOnly && rolActual !== 'Admin') return false;
     if (item.permission) {
-      return permisos.includes(item.permission);
+      return (permisos || []).includes(item.permission);
     }
     return true;
   });
@@ -71,7 +72,7 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
     <div className="flex flex-col h-full bg-[#0f172a] text-white overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10 shrink-0">
         <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shrink-0">
-          <UtensilsCrossed size={16} className="text-white" />
+          <LayoutDashboard size={16} className="text-white" />
         </div>
         <AnimatePresence mode="wait">
           {(isMobile || !collapsed) && (
