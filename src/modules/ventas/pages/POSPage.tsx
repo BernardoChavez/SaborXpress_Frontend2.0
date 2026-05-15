@@ -11,14 +11,12 @@ import {
   Trash2, 
   Plus, 
   Minus, 
-  X, 
   Loader, 
   ChevronRight, 
   CheckCircle, 
   Lock, 
   ArrowRight,
   Utensils,
-  Package,
   DollarSign,
   Camera,
   PlusSquare,
@@ -48,7 +46,7 @@ const POSPage = () => {
   const [loading, setLoading] = useState(true);
   const [showCheckout, setShowCheckout] = useState(false);
   const [metodoPago, setMetodoPago] = useState<'Efectivo' | 'QR'>('Efectivo');
-  const [tipoEntrega, setTipoEntrega] = useState<'Mesa' | 'Llevar'>('Mesa');
+  const [tipoEntrega] = useState<'Mesa' | 'Llevar'>('Mesa');
   const [submitting, setSubmitting] = useState(false);
 
   // Estados para Cobro Estilo Supermercado

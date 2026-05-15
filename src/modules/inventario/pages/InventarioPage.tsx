@@ -11,7 +11,6 @@ import {
   RefreshCw, 
   AlertTriangle, 
   CheckCircle,
-  ChevronRight,
   Utensils,
   Settings,
   ArrowRight,

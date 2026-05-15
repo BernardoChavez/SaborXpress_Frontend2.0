@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, QrCode, Banknote, Power } from 'lucide-react';
-import { cajaService } from '../services/cajaService';
+import { motion } from 'framer-motion';
+import { QrCode, Banknote, Power } from 'lucide-react';
 
 interface Props {
     isOpen: boolean;

@@ -5,8 +5,6 @@ import {
   FolderOpen, 
   Folder, 
   CheckSquare, 
-  ShieldCheck, 
-  Users, 
   Lock, 
   Layers, 
   Zap,
@@ -193,7 +191,6 @@ const RolesPage = () => {
       {/* Matriz Agrupada por Paquetes */}
       <div className="space-y-6">
         {paquetes.map(paq => {
-          const color = MODULE_COLORS[paq.nombre] || 'slate';
           const isExpanded = expandedPaquete === paq.id;
           
           return (

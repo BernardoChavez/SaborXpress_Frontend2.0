@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Wallet, 
   Calculator, 
   Lock, 
   Unlock, 
@@ -11,11 +10,8 @@ import {
   Banknote,
   ShieldCheck,
   DoorOpen,
-  ArrowRightLeft,
   Power,
-  Scale,
   CheckCircle2,
-  AlertTriangle
 } from 'lucide-react';
 import { cajaService } from '../services/cajaService';
 import type { Caja } from '../services/cajaService';

@@ -1,5 +1,5 @@
 import axiosInstance from '../../api/axios';
-import type { InventarioItem, FichaTransformacion, Receta, CreateInventarioDto } from './inventario.types';
+import type { InventarioItem, FichaTransformacion, Receta, CreateInventarioDto } from './types/inventario.types';
 
 export const inventarioService = {
     // --- Bruto ---
