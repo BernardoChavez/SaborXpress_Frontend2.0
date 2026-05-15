@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Package, Ruler, AlertTriangle, Save, Loader2 } from 'lucide-react';
+import { X, Package, AlertTriangle, Save, Loader } from 'lucide-react';
 import { inventarioService } from '../inventarioService';
 import type { CreateInventarioDto, InventarioItem } from '../types/inventario.types';
 
@@ -143,7 +143,7 @@ const ItemInventarioModal = ({ open, onClose, onSuccess, tipo, itemToEdit }: Pro
                         tipo === 'bruto' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100' : 'bg-green-600 hover:bg-green-700 shadow-green-100'
                     }`}
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : <Save size={20} />}
+                    {loading ? <Loader className="animate-spin" /> : <Save size={20} />}
                     {itemToEdit ? 'ACTUALIZAR CAMBIOS' : 'GUARDAR EN INVENTARIO'}
                 </button>
             </form>

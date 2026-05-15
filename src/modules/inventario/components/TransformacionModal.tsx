@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRightLeft, Package, Layers, Loader2, AlertCircle } from 'lucide-react';
+import { X, RefreshCw, Loader, AlertCircle } from 'lucide-react';
 import { inventarioService } from '../inventarioService';
 import type { InventarioItem } from '../types/inventario.types';
 
@@ -54,7 +54,7 @@ const TransformacionModal = ({ open, onClose, bruto, procesado, onSuccess }: Pro
           >
             <div className="p-6 border-b border-gray-50 flex items-center justify-between">
               <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
-                <ArrowRightLeft className="text-blue-500" size={20} />
+                <RefreshCw className="text-blue-500" size={20} />
                 Transformar Insumos
               </h2>
               <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
@@ -105,7 +105,7 @@ const TransformacionModal = ({ open, onClose, bruto, procesado, onSuccess }: Pro
                     type="number" 
                     value={cantidad} 
                     onChange={e => setCantidad(e.target.value)}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg"
+                    className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-lg"
                   />
                 </div>
               </div>
@@ -115,7 +115,7 @@ const TransformacionModal = ({ open, onClose, bruto, procesado, onSuccess }: Pro
                 onClick={handleTransform}
                 className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
               >
-                {loading ? <Loader2 className="animate-spin mx-auto" /> : 'EJECUTAR TRANSFORMACIÓN'}
+                {loading ? <Loader className="animate-spin mx-auto" /> : 'EJECUTAR TRANSFORMACIÓN'}
               </button>
             </div>
           </motion.div>

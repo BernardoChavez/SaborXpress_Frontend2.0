@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Loader2, ArrowRightLeft, Utensils, Info, Trash2, ChevronRight } from 'lucide-react';
+import { X, Loader, RefreshCw, Utensils, Info, Trash2, ChevronRight } from 'lucide-react';
 import { inventarioService } from '../inventarioService';
 import { productoService } from '../../catalogo/catalogoService';
 import type { InventarioItem, Receta } from '../types/inventario.types';
@@ -17,7 +17,6 @@ interface Props {
 const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => {
   const [activeSubTab, setActiveSubTab] = useState<'ficha' | 'receta'>('ficha');
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [loadingData, setLoadingData] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Listas de visualización
@@ -44,12 +43,11 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
   }, [idProducto]);
 
   const loadProductos = async () => {
-    setLoadingData(true);
     try {
         const data = await productoService.getAll();
         setProductos(data);
-    } finally {
-        setLoadingData(false);
+    } catch (e) {
+        console.error(e);
     }
   };
 
@@ -109,13 +107,12 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             className="relative bg-white rounded-[40px] shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row h-[600px]"
           >
-                {/* Sidebar del Modal */}
                 <div className="w-full md:w-56 bg-gray-50 border-r border-gray-100 p-6 space-y-4">
                     <button 
                         onClick={() => setActiveSubTab('ficha')}
                         className={`w-full p-4 rounded-2xl text-left transition-all ${activeSubTab === 'ficha' ? 'bg-white shadow-md text-blue-600 font-bold' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                        <ArrowRightLeft size={20} className="mb-2" />
+                        <RefreshCw size={20} className="mb-2" />
                         <span className="text-[10px] font-black uppercase">Transformación</span>
                     </button>
                     <button 
@@ -127,7 +124,6 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
                     </button>
                 </div>
 
-                {/* Contenido Principal */}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-white sticky top-0 z-10">
                         <div>
@@ -141,7 +137,7 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
                         {activeSubTab === 'ficha' ? (
                             <div className="grid md:grid-cols-2 gap-8">
                                 <form onSubmit={handleSaveFicha} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
-                                    <h3 className="font-bold text-gray-900 flex items-center gap-2"><ArrowRightLeft size={18} className="text-blue-500" /> Nueva Relación</h3>
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2"><RefreshCw size={18} className="text-blue-500" /> Nueva Relación</h3>
                                     <div className="space-y-4">
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-black text-gray-400 uppercase ml-1">Materia Prima</label>
@@ -169,7 +165,7 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
                                         </div>
                                     </div>
                                     <button disabled={submitting} type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 transition-all active:scale-95">
-                                        {submitting ? <Loader2 className="animate-spin mx-auto" /> : 'GUARDAR FICHA'}
+                                        {submitting ? <Loader className="animate-spin mx-auto" /> : 'GUARDAR FICHA'}
                                     </button>
                                 </form>
 
@@ -208,7 +204,7 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
                                         </div>
                                     </div>
                                     <button disabled={submitting || !idProducto} type="submit" className="w-full py-4 bg-orange-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-100 transition-all active:scale-95 disabled:opacity-50">
-                                        {submitting ? <Loader2 className="animate-spin mx-auto" /> : 'ASIGNAR A RECETA'}
+                                        {submitting ? <Loader className="animate-spin mx-auto" /> : 'ASIGNAR A RECETA'}
                                     </button>
                                 </form>
 
@@ -228,7 +224,7 @@ const RecetasModal = ({ open, onClose, bruto, procesado, onSuccess }: Props) => 
                                                 <p className="text-xs font-bold italic">No hay ingredientes asignados aún</p>
                                             </div>
                                         ) : (
-                                            recetaActual.map((r, i) => (
+                                            recetaActual.map((r: any, i: number) => (
                                                 <div key={i} className="flex items-center justify-between bg-gray-50 p-3 rounded-2xl group transition-all hover:bg-orange-50">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-orange-500 shadow-sm">
