@@ -1,6 +1,3 @@
-// ── ARCHIVO: Sidebar.tsx ──────────────────────────────────────────────────────
-// PROPÓSITO: Navegación lateral inteligente basada en privilegios.
-// ─────────────────────────────────────────────────────────────────────────────
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,8 +10,8 @@ import {
   UtensilsCrossed,
   Menu,
   X,
-  Building,
-  Shield,
+  Building2,
+  ShieldAlert,
   Package,
   Store,
   ChefHat,
@@ -23,10 +20,6 @@ import {
 import { useAuthStore } from '../../core/store/useAuthStore';
 import type { TipoUsuario } from '../../core/types/auth.types';
 
-/**
- * MATRIZ DE NAVEGACIÓN: Aquí se definen los accesos.
- * 'permission' corresponde al Caso de Uso (CU) definido en la base de datos.
- */
 interface NavItem {
   label: string;
   to: string;
@@ -36,53 +29,41 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard',   to: '/',                icon: <LayoutDashboard size={20} /> },
-  { label: 'Venta (POS)', to: '/pos',             icon: <Store size={20} />,           permission: 'CU17:ver' },
-  { label: 'Caja',        to: '/caja',            icon: <Wallet size={20} />,          permission: 'CU16:ver' },
-  { label: 'Cocina',      to: '/cocina',          icon: <ChefHat size={20} />,         permission: 'CU20:ver' },
-  { label: 'Catálogo',    to: '/admin/catalogo',   icon: <UtensilsCrossed size={20} />, permission: 'CU8:ver' },
-  { label: 'Usuarios',    to: '/admin/usuarios',   icon: <Users size={20} />,           permission: 'CU5:ver' },
-  { label: 'Bitácora',    to: '/admin/bitacora',   icon: <ScrollText size={20} />,      permission: 'CU7:ver' },
-  { label: 'Empresa',     to: '/admin/empresa',    icon: <Building size={20} />,       adminOnly: true },
-  { label: 'Inventario',  to: '/admin/inventario', icon: <Package size={20} />,         permission: 'CU30:ver' },
-  { label: 'Roles',       to: '/admin/roles',      icon: <Shield size={20} />,          permission: 'CU6:ver' },
+  { label: 'Dashboard', to: '/', icon: <LayoutDashboard size={20} /> },
+  { label: 'Venta (POS)', to: '/pos', icon: <Store size={20} />, permission: 'CU17:ver' },
+  { label: 'Caja', to: '/caja', icon: <Wallet size={20} />, permission: 'CU16:ver' },
+  { label: 'Cocina', to: '/cocina', icon: <ChefHat size={20} />, permission: 'CU20:ver' },
+  { label: 'Catálogo', to: '/admin/catalogo', icon: <UtensilsCrossed size={20} />, permission: 'CU8:ver' },
+  { label: 'Usuarios', to: '/admin/usuarios', icon: <Users size={20} />, permission: 'CU5:ver' },
+  { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={20} />, permission: 'CU7:ver' },
+  { label: 'Empresa', to: '/admin/empresa', icon: <Building2 size={20} />, adminOnly: true },
+  { label: 'Inventario', to: '/admin/inventario', icon: <Package size={20} />, permission: 'CU30:ver' },
+  { label: 'Roles', to: '/admin/roles', icon: <ShieldAlert size={20} />, permission: 'CU6:ver' },
 ];
 
 interface SidebarProps {
-  tipoUsuario: TipoUsuario | string | null;
+  tipoUsuario: TipoUsuario | null;
 }
 
 const EXPANDED_W = 240;
 const COLLAPSED_W = 68;
 
-const Sidebar: React.FC<SidebarProps> = ({ tipoUsuario }) => {
-  // Obtenemos los permisos del estado global (Zustand)
-  const permisos = useAuthStore((state) => state.permisos) || [];
+const Sidebar = ({ tipoUsuario }: SidebarProps) => {
+  const permisos = useAuthStore((state) => state.permisos);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
-  // Cerrar menú móvil al cambiar de página
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  /**
-   * LÓGICA DE FILTRADO (Defensa de Seguridad):
-   * Este filtro asegura que el usuario SOLO vea los módulos a los que tiene acceso.
-   * Si es Admin, el filtro se desactiva (acceso total).
-   */
-  const visibleItems = navItems.filter((item: NavItem) => {
-    const role = String(tipoUsuario);
-    
-    if (role === 'Admin') return true;
-    if (item.adminOnly && role !== 'Admin') return false;
-    
+  const visibleItems = navItems.filter((item) => {
+    if (tipoUsuario === 'Admin') return true;
+    if (item.adminOnly && tipoUsuario !== 'Admin') return false;
     if (item.permission) {
-      const perms = Array.isArray(permisos) ? permisos : [];
-      return perms.includes(item.permission);
+      return permisos.includes(item.permission);
     }
-    
     return true;
   });
 
@@ -122,10 +103,9 @@ const Sidebar: React.FC<SidebarProps> = ({ tipoUsuario }) => {
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors duration-150 group ${
-                isActive
-                  ? 'bg-orange-500 text-white'
-                  : 'text-slate-400 hover:bg-white/10 hover:text-white'
+              `flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors duration-150 group ${isActive
+                ? 'bg-orange-500 text-white'
+                : 'text-slate-400 hover:bg-white/10 hover:text-white'
               }`
             }
           >
