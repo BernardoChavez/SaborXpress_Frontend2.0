@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Mail, Lock, Phone, ArrowLeft, UtensilsCrossed, ShieldCheck, CheckCircle2, Circle } from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowLeft, Utensils, ShieldCheck, CheckCircle, Circle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { parseApiError } from '../../../utils/parseApiError';
 
@@ -17,7 +17,7 @@ const PasswordValidator = ({ password }: { password: string }) => {
     <div className="grid grid-cols-2 gap-2 mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
       {requirements.map((req, i) => (
         <div key={i} className={`flex items-center gap-1.5 transition-all duration-300 ${req.test ? 'text-green-600' : 'text-slate-400'}`}>
-          {req.test ? <CheckCircle2 size={12} className="shrink-0" /> : <Circle size={12} className="shrink-0" />}
+          {req.test ? <CheckCircle size={12} className="shrink-0" /> : <Circle size={12} className="shrink-0" />}
           <span className={`text-[10px] font-bold uppercase tracking-tight ${req.test ? 'opacity-100' : 'opacity-60'}`}>
             {req.label}
           </span>
@@ -77,7 +77,7 @@ const RegisterPage = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-            <UtensilsCrossed className="w-8 h-8 text-white" />
+            <Utensils className="w-8 h-8 text-white" />
           </div>
         </div>
         <h2 className="text-center text-3xl font-black tracking-tight text-slate-900 uppercase italic">

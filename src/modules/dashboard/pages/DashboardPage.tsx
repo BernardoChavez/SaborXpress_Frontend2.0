@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Users, ShoppingBag, Tag, ScrollText,
-  TrendingUp, ShieldCheck, UtensilsCrossed, CreditCard,
-  ArrowRight, Clock, Activity, ArrowUpRight
+  Users, ShoppingBag, Tag,
+  ShieldCheck, Utensils, CreditCard,
+  Clock, Activity, ArrowUpRight
 } from 'lucide-react';
 import { useAuthStore } from '../../../core/store/useAuthStore';
 import axiosInstance from '../../../api/axios';
@@ -139,7 +139,7 @@ const DashboardPage = () => {
   const roleConfig: Record<string, { icon: React.ReactNode; color: string; desc: string }> = {
     Admin: { icon: <ShieldCheck size={20} />, color: 'text-purple-600 bg-purple-50', desc: 'Gestor' },
     Cajero: { icon: <CreditCard size={20} />, color: 'text-blue-600 bg-blue-50', desc: 'Operativo' },
-    Cocinero: { icon: <UtensilsCrossed size={20} />, color: 'text-orange-600 bg-orange-50', desc: 'Producción' },
+    Cocinero: { icon: <Utensils size={20} />, color: 'text-orange-600 bg-orange-50', desc: 'Producción' },
   };
 
   return (
