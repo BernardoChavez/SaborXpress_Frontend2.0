@@ -1,3 +1,9 @@
+/**
+ * APARTADO: SEGURIDAD DE RUTAS (FRONTEND)
+ * ARCHIVO: ProtectedRoute.tsx
+ * FUNCIÓN: Actúa como un "Guardia de Seguridad". Si un usuario intenta entrar a una
+ *          URL sin permiso o sin estar logueado, lo redirige automáticamente al login.
+ */
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../../core/store/useAuthStore';
 import type { TipoUsuario } from '../../core/types/auth.types';

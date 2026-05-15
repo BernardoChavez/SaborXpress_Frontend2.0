@@ -1,3 +1,9 @@
+/**
+ * APARTADO: OPERACIONES DE VENTA (POS)
+ * ARCHIVO: POSPage.tsx
+ * FUNCIÓN: Interfaz principal para la toma de pedidos. Gestiona el carrito,
+ *          la selección de platos y el envío de comandas a la cocina.
+ */
 import { useState, useEffect } from 'react';
 import { 
   ShoppingBag, 

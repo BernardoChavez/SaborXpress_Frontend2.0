@@ -1,3 +1,9 @@
+/**
+ * APARTADO: GESTIÓN DE ESTADO GLOBAL (AUTH)
+ * ARCHIVO: useAuthStore.ts
+ * FUNCIÓN: Centraliza la información del usuario, el token JWT y los permisos.
+ *          Permite que todo el sistema sepa quién está logueado y qué puede hacer.
+ */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthState, User } from '../types/auth.types';

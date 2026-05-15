@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+// ── ARCHIVO: Sidebar.tsx ──────────────────────────────────────────────────────
+// PROPÓSITO: Navegación lateral inteligente basada en privilegios.
+// ─────────────────────────────────────────────────────────────────────────────
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -10,8 +13,8 @@ import {
   UtensilsCrossed,
   Menu,
   X,
-  Building2,
-  ShieldAlert,
+  Building,
+  Shield,
   Package,
   Store,
   ChefHat,
@@ -20,11 +23,15 @@ import {
 import { useAuthStore } from '../../core/store/useAuthStore';
 import type { TipoUsuario } from '../../core/types/auth.types';
 
+/**
+ * MATRIZ DE NAVEGACIÓN: Aquí se definen los accesos.
+ * 'permission' corresponde al Caso de Uso (CU) definido en la base de datos.
+ */
 interface NavItem {
   label: string;
   to: string;
   icon: React.ReactNode;
-  permission?: string; // Código de la matriz (ej: 'CU17:ver')
+  permission?: string;
   adminOnly?: boolean;
 }
 
@@ -36,52 +43,56 @@ const navItems: NavItem[] = [
   { label: 'Catálogo',    to: '/admin/catalogo',   icon: <UtensilsCrossed size={20} />, permission: 'CU8:ver' },
   { label: 'Usuarios',    to: '/admin/usuarios',   icon: <Users size={20} />,           permission: 'CU5:ver' },
   { label: 'Bitácora',    to: '/admin/bitacora',   icon: <ScrollText size={20} />,      permission: 'CU7:ver' },
-  { label: 'Empresa',     to: '/admin/empresa',    icon: <Building2 size={20} />,       adminOnly: true },
+  { label: 'Empresa',     to: '/admin/empresa',    icon: <Building size={20} />,       adminOnly: true },
   { label: 'Inventario',  to: '/admin/inventario', icon: <Package size={20} />,         permission: 'CU30:ver' },
-  { label: 'Roles',       to: '/admin/roles',      icon: <ShieldAlert size={20} />,     permission: 'CU6:ver' },
+  { label: 'Roles',       to: '/admin/roles',      icon: <Shield size={20} />,          permission: 'CU6:ver' },
 ];
 
 interface SidebarProps {
-  tipoUsuario: TipoUsuario | null;
+  tipoUsuario: TipoUsuario | string | null;
 }
 
 const EXPANDED_W = 240;
 const COLLAPSED_W = 68;
 
-const Sidebar = ({ tipoUsuario }: SidebarProps) => {
-  const { permisos } = useAuthStore();
+const Sidebar: React.FC<SidebarProps> = ({ tipoUsuario }) => {
+  // Obtenemos los permisos del estado global (Zustand)
+  const permisos = useAuthStore((state) => state.permisos) || [];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
+  // Cerrar menú móvil al cambiar de página
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Filtrar items según permisos y rol admin
-  const visibleItems = navItems.filter((item) => {
-    // 1. Si eres Admin, ves todo
-    if (tipoUsuario === 'Admin') return true;
-
-    // 2. Si el item es solo para Admin y no eres Admin, ocultar
-    if (item.adminOnly && tipoUsuario !== 'Admin') return false;
-
-    // 3. Si el item requiere un permiso específico de la matriz
+  /**
+   * LÓGICA DE FILTRADO (Defensa de Seguridad):
+   * Este filtro asegura que el usuario SOLO vea los módulos a los que tiene acceso.
+   * Si es Admin, el filtro se desactiva (acceso total).
+   */
+  const visibleItems = navItems.filter((item: NavItem) => {
+    const role = String(tipoUsuario);
+    
+    if (role === 'Admin') return true;
+    if (item.adminOnly && role !== 'Admin') return false;
+    
     if (item.permission) {
-      return permisos.includes(item.permission);
+      const perms = Array.isArray(permisos) ? permisos : [];
+      return perms.includes(item.permission);
     }
-
-    // 4. Si no tiene restricciones, mostrar (ej: Dashboard)
+    
     return true;
   });
 
   const sidebarContent = (isMobile: boolean) => (
-    <>
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
+    <div className="flex flex-col h-full bg-[#0f172a] text-white overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10 shrink-0">
         <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shrink-0">
           <UtensilsCrossed size={16} className="text-white" />
         </div>
-        <AnimatePresence initial={false}>
+        <AnimatePresence mode="wait">
           {(isMobile || !collapsed) && (
             <motion.span
               key="brand"
@@ -111,16 +122,15 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              [
-                'flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors duration-150 group',
+              `flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors duration-150 group ${
                 isActive
                   ? 'bg-orange-500 text-white'
-                  : 'text-slate-400 hover:bg-white/8 hover:text-white',
-              ].join(' ')
+                  : 'text-slate-400 hover:bg-white/10 hover:text-white'
+              }`
             }
           >
             <span className="shrink-0">{item.icon}</span>
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="wait">
               {(isMobile || !collapsed) && (
                 <motion.span
                   key={item.label}
@@ -138,7 +148,7 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
       </nav>
 
       {!isMobile && (
-        <div className="border-t border-white/10 px-4 py-3">
+        <div className="border-t border-white/10 px-4 py-3 shrink-0">
           <button
             onClick={() => setCollapsed((v) => !v)}
             className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm w-full"
@@ -146,7 +156,7 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
             <span className="shrink-0">
               {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             </span>
-            <AnimatePresence initial={false}>
+            <AnimatePresence mode="wait">
               {!collapsed && (
                 <motion.span
                   key="collapse-label"
@@ -162,7 +172,7 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -177,7 +187,7 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
       <motion.aside
         animate={{ width: collapsed ? COLLAPSED_W : EXPANDED_W }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="relative hidden md:flex flex-col h-full bg-[#0f172a] text-white shrink-0 overflow-hidden"
+        className="relative hidden md:flex flex-col h-full bg-[#0f172a] text-white shrink-0 overflow-hidden border-r border-white/5"
       >
         {sidebarContent(false)}
       </motion.aside>

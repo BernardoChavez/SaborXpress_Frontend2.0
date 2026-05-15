@@ -1,3 +1,9 @@
+/**
+ * APARTADO: MONITOR DE PRODUCCIÓN (COCINA)
+ * ARCHIVO: CocinaPage.tsx
+ * FUNCIÓN: Recibe los pedidos del POS en tiempo real. Permite al cocinero
+ *          gestionar los estados de preparación (Pendiente, En Proceso, Listo).
+ */
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 

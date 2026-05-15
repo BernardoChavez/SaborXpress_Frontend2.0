@@ -1,3 +1,7 @@
+// ── ARCHIVO: InventarioPage.tsx ──────────────────────────────────────────────
+// PROPÓSITO: Gestión de Stock y Transformación de Insumos.
+// INCLUYE: Filtro dinámico de estados de stock.
+// ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -9,11 +13,11 @@ import {
   AlertTriangle, 
   CheckCircle2,
   ChevronRight,
-  ClipboardList,
   Utensils,
   Settings,
   ArrowRight,
-  Dot
+  Filter,
+  Ban
 } from 'lucide-react';
 import { inventarioService } from '../inventarioService';
 import type { InventarioItem, FichaTransformacion, Receta } from '../types/inventario.types';
@@ -22,6 +26,7 @@ import ItemInventarioModal from '../components/ItemInventarioModal';
 import RecetasModal from '../components/RecetasModal';
 
 type Tab = 'bruto' | 'procesado' | 'recetas';
+type StockFilter = 'todos' | 'disponible' | 'bajo' | 'agotado';
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode; color: string }[] = [
   { id: 'bruto',     label: 'Materia Prima', icon: <Package size={18} />,     color: 'blue' },
@@ -37,6 +42,7 @@ const InventarioPage = () => {
   const [recetas, setRecetas] = useState<Receta[]>([]);
   
   const [loading, setLoading] = useState(true);
+  const [stockFilter, setStockFilter] = useState<StockFilter>('todos');
   const [showTransformModal, setShowTransformModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
   const [showRecetasModal, setShowRecetasModal] = useState(false);
@@ -67,7 +73,26 @@ const InventarioPage = () => {
     fetchData();
   }, []);
 
-  // Agrupar recetas por producto
+  /**
+   * LÓGICA DE FILTRADO DE STOCK:
+   * Separa los productos en categorías visuales según su disponibilidad real.
+   */
+  const filterItems = (items: InventarioItem[]) => {
+    if (stockFilter === 'todos') return items;
+    return items.filter(item => {
+      const stock = Number(item.stock);
+      const min = Number(item.stock_minimo);
+      
+      // Disponible: Por encima del stock de seguridad
+      if (stockFilter === 'disponible') return stock > min;
+      // Bajo Stock: En riesgo de agotarse (alerta naranja)
+      if (stockFilter === 'bajo') return stock <= min && stock > 0;
+      // Agotado: Existencia cero (alerta roja)
+      if (stockFilter === 'agotado') return stock <= 0;
+      return true;
+    });
+  };
+
   const recetasAgrupadas = recetas.reduce((acc, r) => {
     const prodName = r.producto?.nombre || 'Producto sin nombre';
     if (!acc[prodName]) acc[prodName] = [];
@@ -76,7 +101,7 @@ const InventarioPage = () => {
   }, {} as Record<string, Receta[]>);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -106,30 +131,37 @@ const InventarioPage = () => {
         </div>
       </div>
 
-      {/* Tabs Switcher */}
-      <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex gap-1">
-        {TABS.map((tab) => {
-          const colorClasses: Record<string, string> = {
-            blue: 'bg-blue-50 text-blue-600 shadow-sm',
-            green: 'bg-green-50 text-green-600 shadow-sm',
-            orange: 'bg-orange-50 text-orange-600 shadow-sm',
-          };
-
-          return (
+      {/* Toolbar: Tabs + Stock Filter */}
+      <div className="flex flex-col xl:flex-row gap-4 items-center justify-between bg-white p-2 rounded-[24px] shadow-sm border border-gray-100">
+        {/* Tabs Switcher */}
+        <div className="flex gap-1 w-full xl:w-auto p-1 bg-gray-50 rounded-2xl">
+          {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 activeTab === tab.id 
-                  ? colorClasses[tab.color]
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-100'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {tab.icon}
               {tab.label}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* Stock Status Filter (Solo visible en bruto y procesado) */}
+        {activeTab !== 'recetas' && (
+          <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl w-full xl:w-auto">
+              <FilterSelect 
+                value={stockFilter} 
+                onChange={(val) => setStockFilter(val as StockFilter)} 
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -143,7 +175,7 @@ const InventarioPage = () => {
         >
           {activeTab === 'bruto' && (
             <InventoryGrid 
-              items={itemsBruto} 
+              items={filterItems(itemsBruto)} 
               title="Materia Prima (En Bruto)" 
               description="Productos tal como se compran al proveedor"
               color="blue"
@@ -153,7 +185,7 @@ const InventarioPage = () => {
           )}
           {activeTab === 'procesado' && (
             <InventoryGrid 
-              items={itemsProcesado} 
+              items={filterItems(itemsProcesado)} 
               title="Insumos Procesados" 
               description="Productos listos para cocinar"
               color="green"
@@ -178,7 +210,7 @@ const InventarioPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                    {/* Fichas de Transformación (Left Side) */}
+                    {/* Fichas de Transformación */}
                     <div className="xl:col-span-4 space-y-4">
                         <div className="flex items-center gap-3 mb-2">
                              <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center"><ArrowRightLeft size={16}/></div>
@@ -202,11 +234,11 @@ const InventarioPage = () => {
                         </div>
                     </div>
 
-                    {/* Recetas Agrupadas (Right Side) */}
+                    {/* Recetas Agrupadas */}
                     <div className="xl:col-span-8 space-y-4">
                         <div className="flex items-center gap-3 mb-2">
                              <div className="w-8 h-8 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center"><Utensils size={16}/></div>
-                             <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">Recetas del Menú (Insumos por Plato)</h3>
+                             <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest">Recetas del Menú</h3>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -237,9 +269,6 @@ const InventarioPage = () => {
                                                 </span>
                                             </div>
                                         ))}
-                                    </div>
-                                    <div className="p-4 bg-gray-50/50 flex justify-end">
-                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Descuento automático al vender</span>
                                     </div>
                                 </motion.div>
                             ))}
@@ -278,83 +307,130 @@ const InventarioPage = () => {
   );
 };
 
-// --- Helper Components ---
+// --- Sub-componentes Especializados ---
+
+const FilterSelect = ({ value, onChange }: { value: StockFilter, onChange: (v: string) => void }) => {
+  const options = [
+    { id: 'todos',      label: 'Todos',      icon: <Layers size={14}/>,   color: 'gray' },
+    { id: 'disponible', label: 'Disponible',  icon: <CheckCircle2 size={14}/>, color: 'green' },
+    { id: 'bajo',       label: 'Bajo Stock', icon: <AlertTriangle size={14}/>, color: 'orange' },
+    { id: 'agotado',    label: 'Agotado',    icon: <Ban size={14}/>,           color: 'red' },
+  ];
+
+  return (
+    <div className="flex gap-1">
+      {options.map(opt => {
+        const isActive = value === opt.id;
+        const colorVariants: Record<string, string> = {
+          gray: isActive ? 'bg-white text-gray-900 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700',
+          green: isActive ? 'bg-green-500 text-white shadow-lg shadow-green-100' : 'text-gray-500 hover:text-green-600 hover:bg-green-50',
+          orange: isActive ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' : 'text-gray-500 hover:text-orange-600 hover:bg-orange-50',
+          red: isActive ? 'bg-red-500 text-white shadow-lg shadow-red-100' : 'text-gray-500 hover:text-red-600 hover:bg-red-50',
+        };
+
+        return (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${colorVariants[opt.color]}`}
+          >
+            {opt.icon}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 const InventoryGrid = ({ items, title, description, color, onAdd, onEdit }: { items: InventarioItem[], title: string, description: string, color: string, onAdd: () => void, onEdit: (item: InventarioItem) => void }) => (
   <div className="space-y-4">
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between px-2">
         <div>
             <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-            <p className="text-xs text-gray-500">{description}</p>
+            <p className="text-xs text-gray-500">{description} • {items.length} resultados</p>
         </div>
         <button 
           onClick={onAdd}
-          className={`flex items-center gap-2 px-4 py-2 ${color === 'blue' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-gray-100`}
+          className={`flex items-center gap-2 px-4 py-2 ${color === 'blue' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-gray-100 active:scale-95`}
         >
             <Plus size={16} />
-            Añadir Item
+            Nuevo Registro
         </button>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.length === 0 ? (
-        <div className="col-span-full py-12 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
-            <p className="text-gray-400 text-sm italic">No hay registros en esta categoría</p>
+        <div className="col-span-full py-20 bg-white rounded-[40px] border border-dashed border-gray-200 text-center flex flex-col items-center justify-center space-y-3">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+              <Filter size={32} />
+            </div>
+            <p className="text-gray-400 text-sm font-medium">No se encontraron productos con este filtro</p>
         </div>
       ) : (
-        items.map((item) => (
-          <motion.div
-            key={item.id}
-            whileHover={{ y: -4 }}
-            className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{item.nombre}</h3>
-                <p className="text-xs text-gray-400 font-mono">ID: #{item.id}</p>
-              </div>
-              <div className={`p-2 rounded-lg ${color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
-                <ChevronRight size={16} />
-              </div>
-            </div>
+        items.map((item) => {
+          const isCritical = Number(item.stock) <= Number(item.stock_minimo);
+          const isAgotado = Number(item.stock) <= 0;
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Stock Actual</p>
-                <div className="flex items-baseline gap-1">
-                  <span className={`text-xl font-black ${Number(item.stock) <= Number(item.stock_minimo) ? 'text-red-500' : 'text-gray-900'}`}>
-                    {Number(item.stock).toLocaleString()}
-                  </span>
-                  <span className="text-xs font-medium text-gray-500">{item.unidad_medida}</span>
+          return (
+            <motion.div
+              key={item.id}
+              whileHover={{ y: -4 }}
+              className="bg-white p-5 rounded-[32px] shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all group relative overflow-hidden"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{item.nombre}</h3>
+                  <p className="text-[10px] text-gray-400 font-black tracking-widest">CATEGORÍA: {item.categoria?.nombre || 'General'}</p>
+                </div>
+                <div className={`p-2 rounded-xl ${color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
+                  <Package size={18} />
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Mínimo</p>
-                <p className="text-sm font-semibold text-gray-700">{Number(item.stock_minimo).toLocaleString()} {item.unidad_medida}</p>
-              </div>
-            </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
-              {Number(item.stock) <= Number(item.stock_minimo) ? (
-                <div className="flex items-center gap-1 text-red-500 bg-red-50 px-2 py-1 rounded-lg">
-                  <AlertTriangle size={12} />
-                  <span className="text-[10px] font-bold uppercase">Stock Crítico</span>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-50">
+                <div className="space-y-1">
+                  <p className="text-[9px] uppercase font-black text-gray-400 tracking-wider">Existencia</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-2xl font-black ${isAgotado ? 'text-red-600' : isCritical ? 'text-orange-500' : 'text-gray-900'}`}>
+                      {Number(item.stock).toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">{item.unidad_medida}</span>
+                  </div>
                 </div>
-              ) : (
-                <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-lg">
-                  <CheckCircle2 size={12} />
-                  <span className="text-[10px] font-bold uppercase">Estado Óptimo</span>
+                <div className="space-y-1">
+                  <p className="text-[9px] uppercase font-black text-gray-400 tracking-wider">Stock Mínimo</p>
+                  <p className="text-sm font-black text-gray-700">{Number(item.stock_minimo).toLocaleString()} <span className="text-[9px] opacity-50">{item.unidad_medida}</span></p>
                 </div>
-              )}
-              <button 
-                onClick={() => onEdit(item)}
-                className="text-[10px] font-bold text-blue-500 hover:underline uppercase"
-              >
-                Editar
-              </button>
-            </div>
-          </motion.div>
-        ))
+              </div>
+
+              <div className="mt-4 pt-4 flex items-center justify-between">
+                {isAgotado ? (
+                  <div className="flex items-center gap-1.5 text-red-600 bg-red-50 px-3 py-1.5 rounded-xl border border-red-100">
+                    <Ban size={14} />
+                    <span className="text-[9px] font-black uppercase tracking-tighter">Agotado Total</span>
+                  </div>
+                ) : isCritical ? (
+                  <div className="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-100">
+                    <AlertTriangle size={14} />
+                    <span className="text-[9px] font-black uppercase tracking-tighter">Bajo Stock</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1.5 rounded-xl border border-green-100">
+                    <CheckCircle2 size={14} />
+                    <span className="text-[9px] font-black uppercase tracking-tighter">Disponible</span>
+                  </div>
+                )}
+                <button 
+                  onClick={() => onEdit(item)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-900 text-white text-[9px] font-black uppercase rounded-xl hover:bg-indigo-600 transition-colors"
+                >
+                  Modificar
+                </button>
+              </div>
+            </motion.div>
+          );
+        })
       )}
     </div>
   </div>
