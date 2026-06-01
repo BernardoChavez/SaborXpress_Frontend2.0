@@ -32,3 +32,54 @@ export interface CreateInventarioDto {
     unidad_medida: string;
     stock_minimo: number;
 }
+
+export interface Proveedor {
+    id: number;
+    nombre: string;
+    telefono?: string;
+    correo?: string;
+    direccion?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CreateProveedorDto {
+    nombre: string;
+    telefono?: string;
+    correo?: string;
+    direccion?: string;
+}
+
+export interface OrdenCompraDetalle {
+    id: number;
+    id_orden_compra: number;
+    id_bruto: number;
+    cantidad: number;
+    precio_unitario: number;
+    subtotal: number;
+    bruto?: InventarioItem;
+}
+
+export interface OrdenCompra {
+    id: number;
+    id_proveedor: number;
+    id_usuario: number;
+    monto_total: number;
+    estado: 'Pendiente' | 'Recibida' | 'Cancelada';
+    fecha_orden: string;
+    fecha_recepcion?: string;
+    created_at?: string;
+    updated_at?: string;
+    proveedor?: Proveedor;
+    detalles?: OrdenCompraDetalle[];
+    usuario?: {
+        id_persona: number;
+        correo: string;
+        persona?: {
+            id: number;
+            nombre: string;
+            telefono?: string;
+        }
+    };
+}
+

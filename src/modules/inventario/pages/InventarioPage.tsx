@@ -1,6 +1,5 @@
 // ── ARCHIVO: InventarioPage.tsx ──────────────────────────────────────────────
-// PROPÓSITO: Gestión de Stock y Transformación de Insumos.
-// INCLUYE: Filtro dinámico de estados de stock.
+// PROPÓSITO: Gestión de Stock, Transformación de Insumos, Proveedores y Compras.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,21 +14,35 @@ import {
   Settings,
   ArrowRight,
   Filter,
-  Ban
+  Ban,
+  Users,
+  ShoppingBag,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Eye,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import { inventarioService } from '../inventarioService';
-import type { InventarioItem, FichaTransformacion, Receta } from '../types/inventario.types';
+import type { InventarioItem, FichaTransformacion, Receta, Proveedor, OrdenCompra } from '../types/inventario.types';
 import TransformacionModal from '../components/TransformacionModal';
 import ItemInventarioModal from '../components/ItemInventarioModal';
 import RecetasModal from '../components/RecetasModal';
+import ProveedorModal from '../components/ProveedorModal';
+import CompraModal from '../components/CompraModal';
+import DetalleCompraModal from '../components/DetalleCompraModal';
 
-type Tab = 'bruto' | 'procesado' | 'recetas';
+type Tab = 'bruto' | 'procesado' | 'recetas' | 'proveedores' | 'compras';
 type StockFilter = 'todos' | 'disponible' | 'bajo' | 'agotado';
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode; color: string }[] = [
-  { id: 'bruto',     label: 'Materia Prima', icon: <Package size={18} />,     color: 'blue' },
-  { id: 'procesado', label: 'Procesados',     icon: <Layers size={18} />,      color: 'green' },
-  { id: 'recetas',   label: 'Recetas',       icon: <Utensils size={18} />, color: 'orange' },
+  { id: 'bruto',       label: 'Materia Prima', icon: <Package size={18} />,     color: 'blue' },
+  { id: 'procesado',   label: 'Procesados',    icon: <Layers size={18} />,      color: 'green' },
+  { id: 'recetas',     label: 'Recetas',       icon: <Utensils size={18} />,     color: 'orange' },
+  { id: 'proveedores', label: 'Proveedores',   icon: <Users size={18} />,        color: 'purple' },
+  { id: 'compras',     label: 'Compras',       icon: <ShoppingBag size={18} />,  color: 'red' },
 ];
 
 const InventarioPage = () => {
@@ -38,30 +51,46 @@ const InventarioPage = () => {
   const [itemsProcesado, setItemsProcesado] = useState<InventarioItem[]>([]);
   const [fichas, setFichas] = useState<FichaTransformacion[]>([]);
   const [recetas, setRecetas] = useState<Receta[]>([]);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [compras, setCompras] = useState<OrdenCompra[]>([]);
   
   const [loading, setLoading] = useState(true);
   const [stockFilter, setStockFilter] = useState<StockFilter>('todos');
   const [showTransformModal, setShowTransformModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
   const [showRecetasModal, setShowRecetasModal] = useState(false);
+  const [showProveedorModal, setShowProveedorModal] = useState(false);
+  const [showCompraModal, setShowCompraModal] = useState(false);
+  const [showDetalleCompraModal, setShowDetalleCompraModal] = useState(false);
+
   const [itemToEdit, setItemToEdit] = useState<InventarioItem | null>(null);
+  const [providerToEdit, setProviderToEdit] = useState<Proveedor | null>(null);
+  const [selectedCompra, setSelectedCompra] = useState<OrdenCompra | null>(null);
+
   const [modalType, setModalType] = useState<'bruto' | 'procesado'>('bruto');
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const [bruto, procesado, f, r] = await Promise.all([
+      const [bruto, procesado, f, r, prov, comp] = await Promise.all([
         inventarioService.getAllBruto(),
         inventarioService.getAllProcesado(),
         inventarioService.getAllFichas(),
-        inventarioService.getAllRecetas()
+        inventarioService.getAllRecetas(),
+        inventarioService.getProveedores(),
+        inventarioService.getCompras()
       ]);
       setItemsBruto(bruto);
       setItemsProcesado(procesado);
       setFichas(f);
       setRecetas(r);
-    } catch (error) {
-      console.error('Error fetching inventory:', error);
+      setProveedores(prov);
+      setCompras(comp);
+    } catch (err: any) {
+      console.error('Error fetching inventory:', err);
+      setError('Error al cargar la información del servidor.');
     } finally {
       setLoading(false);
     }
@@ -71,21 +100,23 @@ const InventarioPage = () => {
     fetchData();
   }, []);
 
-  /**
-   * LÓGICA DE FILTRADO DE STOCK:
-   * Separa los productos en categorías visuales según su disponibilidad real.
-   */
+  const handleDeleteProveedor = async (id: number) => {
+    if (!confirm('¿Está seguro de que desea eliminar este proveedor?')) return;
+    try {
+      await inventarioService.deleteProveedor(id);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al eliminar el proveedor.');
+    }
+  };
+
   const filterItems = (items: InventarioItem[]) => {
     if (stockFilter === 'todos') return items;
     return items.filter(item => {
       const stock = Number(item.stock);
       const min = Number(item.stock_minimo);
-      
-      // Disponible: Por encima del stock de seguridad
       if (stockFilter === 'disponible') return stock > min;
-      // Bajo Stock: En riesgo de agotarse (alerta naranja)
       if (stockFilter === 'bajo') return stock <= min && stock > 0;
-      // Agotado: Existencia cero (alerta roja)
       if (stockFilter === 'agotado') return stock <= 0;
       return true;
     });
@@ -108,7 +139,7 @@ const InventarioPage = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Control de Inventarios</h1>
-            <p className="text-sm text-gray-500">Gestiona materia prima, insumos procesados y recetas</p>
+            <p className="text-sm text-gray-500">Gestiona materia prima, insumos, recetas, proveedores y compras</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -129,15 +160,21 @@ const InventarioPage = () => {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm flex items-center gap-2 border border-red-100">
+          <AlertCircle size={18} /> {error}
+        </div>
+      )}
+
       {/* Toolbar: Tabs + Stock Filter */}
       <div className="flex flex-col xl:flex-row gap-4 items-center justify-between bg-white p-2 rounded-[24px] shadow-sm border border-gray-100">
         {/* Tabs Switcher */}
-        <div className="flex gap-1 w-full xl:w-auto p-1 bg-gray-50 rounded-2xl">
+        <div className="flex gap-1 w-full xl:w-auto p-1 bg-gray-50 rounded-2xl overflow-x-auto no-scrollbar">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id 
                   ? 'bg-white text-gray-900 shadow-sm border border-gray-100'
                   : 'text-gray-500 hover:text-gray-700'
@@ -150,7 +187,7 @@ const InventarioPage = () => {
         </div>
 
         {/* Stock Status Filter (Solo visible en bruto y procesado) */}
-        {activeTab !== 'recetas' && (
+        {['bruto', 'procesado'].includes(activeTab) && (
           <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto no-scrollbar">
             <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl w-full xl:w-auto">
               <FilterSelect 
@@ -181,6 +218,7 @@ const InventarioPage = () => {
               onEdit={(item) => { setItemToEdit(item); setModalType('bruto'); setShowItemModal(true); }}
             />
           )}
+
           {activeTab === 'procesado' && (
             <InventoryGrid 
               items={filterItems(itemsProcesado)} 
@@ -191,6 +229,7 @@ const InventarioPage = () => {
               onEdit={(item) => { setItemToEdit(item); setModalType('procesado'); setShowItemModal(true); }}
             />
           )}
+
           {activeTab === 'recetas' && (
              <div className="space-y-8">
                 <div className="flex items-center justify-between">
@@ -275,6 +314,158 @@ const InventarioPage = () => {
                 </div>
              </div>
           )}
+
+          {activeTab === 'proveedores' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                <div>
+                  <h2 className="text-xl font-black text-gray-900">Nuestros Proveedores</h2>
+                  <p className="text-xs text-gray-500">Listado de contactos autorizados para compras</p>
+                </div>
+                <button 
+                  onClick={() => { setProviderToEdit(null); setShowProveedorModal(true); }}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-purple-100 active:scale-95 uppercase tracking-widest"
+                >
+                  <Plus size={16} />
+                  Nuevo Proveedor
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {proveedores.length === 0 ? (
+                  <div className="col-span-full py-20 bg-white rounded-[40px] border border-dashed border-gray-200 text-center text-gray-400 italic">
+                    No hay proveedores registrados.
+                  </div>
+                ) : (
+                  proveedores.map(p => (
+                    <motion.div
+                      key={p.id}
+                      whileHover={{ y: -4 }}
+                      className="bg-white p-5 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl hover:border-purple-200 transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        <h3 className="font-black text-gray-900 uppercase text-sm mb-3">{p.nombre}</h3>
+                        <div className="space-y-2 text-xs text-gray-600">
+                          {p.telefono && (
+                            <div className="flex items-center gap-2">
+                              <Phone size={14} className="text-purple-400" />
+                              <span>{p.telefono}</span>
+                            </div>
+                          )}
+                          {p.correo && (
+                            <div className="flex items-center gap-2">
+                              <Mail size={14} className="text-purple-400" />
+                              <span>{p.correo}</span>
+                            </div>
+                          )}
+                          {p.direccion && (
+                            <div className="flex items-center gap-2">
+                              <MapPin size={14} className="text-purple-400" />
+                              <span>{p.direccion}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-between shrink-0">
+                        <button
+                          onClick={() => { setProviderToEdit(p); setShowProveedorModal(true); }}
+                          className="px-3 py-1.5 bg-gray-100 text-gray-700 text-[10px] font-black uppercase rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProveedor(p.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'compras' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                <div>
+                  <h2 className="text-xl font-black text-gray-900">Órdenes de Compra</h2>
+                  <p className="text-xs text-gray-500">Registro histórico e ingresos de mercancías</p>
+                </div>
+                <button 
+                  onClick={() => setShowCompraModal(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-red-100 active:scale-95 uppercase tracking-widest"
+                >
+                  <Plus size={16} />
+                  Nueva Compra
+                </button>
+              </div>
+
+              <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                        <th className="p-4">ID</th>
+                        <th className="p-4">Fecha</th>
+                        <th className="p-4">Proveedor</th>
+                        <th className="p-4">Monto Total</th>
+                        <th className="p-4">Estado</th>
+                        <th className="p-4 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {compras.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-10 text-center text-gray-400 italic">
+                            No hay órdenes de compra registradas.
+                          </td>
+                        </tr>
+                      ) : (
+                        compras.map(c => (
+                          <tr key={c.id} className="hover:bg-gray-50/50">
+                            <td className="p-4 font-black text-gray-900">#{c.id}</td>
+                            <td className="p-4 text-gray-500">{new Date(c.fecha_orden).toLocaleDateString()}</td>
+                            <td className="p-4 font-bold text-gray-700 uppercase">{c.proveedor?.nombre}</td>
+                            <td className="p-4 font-black text-gray-900">{Number(c.monto_total).toFixed(2)} Bs.</td>
+                            <td className="p-4">
+                              <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
+                                c.estado === 'Recibida' ? 'bg-green-50 text-green-600 border border-green-100' :
+                                c.estado === 'Cancelada' ? 'bg-red-50 text-red-600 border border-red-100' :
+                                'bg-orange-50 text-orange-600 border border-orange-100'
+                              }`}>
+                                {c.estado}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const details = await inventarioService.getCompraById(c.id);
+                                    setSelectedCompra(details);
+                                    setShowDetalleCompraModal(true);
+                                  } catch (err) {
+                                    alert('Error al cargar detalle de la compra.');
+                                  }
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-indigo-600 text-white text-[9px] font-black uppercase rounded-lg transition-colors"
+                              >
+                                <Eye size={12} />
+                                Detalles
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -300,6 +491,28 @@ const InventarioPage = () => {
         procesado={itemsProcesado}
         onClose={() => setShowRecetasModal(false)}
         onSuccess={fetchData}
+      />
+
+      <ProveedorModal 
+        open={showProveedorModal}
+        onClose={() => { setShowProveedorModal(false); setProviderToEdit(null); }}
+        onSuccess={fetchData}
+        providerToEdit={providerToEdit}
+      />
+
+      <CompraModal 
+        open={showCompraModal}
+        onClose={() => setShowCompraModal(false)}
+        onSuccess={fetchData}
+        proveedores={proveedores}
+        materiaPrima={itemsBruto}
+      />
+
+      <DetalleCompraModal 
+        open={showDetalleCompraModal}
+        onClose={() => { setShowDetalleCompraModal(false); setSelectedCompra(null); }}
+        onSuccess={fetchData}
+        orden={selectedCompra}
       />
     </div>
   );
@@ -350,7 +563,7 @@ const InventoryGrid = ({ items, title, description, color, onAdd, onEdit }: { it
         </div>
         <button 
           onClick={onAdd}
-          className={`flex items-center gap-2 px-4 py-2 ${color === 'blue' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-gray-100 active:scale-95`}
+          className={`flex items-center gap-2 px-4 py-2 ${color === 'blue' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-50 hover:bg-green-600'} text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-gray-100 active:scale-95`}
         >
             <Plus size={16} />
             Nuevo Registro

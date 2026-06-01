@@ -13,6 +13,8 @@ export interface Caja {
     ventas_efectivo?: number;
     ventas_qr?: number;
     ventas_totales?: number;
+    egresos?: number;
+    monto_esperado_efectivo?: number;
 }
 
 export const cajaService = {
@@ -33,5 +35,12 @@ export const cajaService = {
             monto_real_qr: qrReal
         });
         return data.reporte;
+    },
+    registrarEgreso: async (monto: number, motivo: string): Promise<any> => {
+        const { data } = await axiosInstance.post('/caja/egresos', { 
+            monto, 
+            motivo 
+        });
+        return data;
     }
 };

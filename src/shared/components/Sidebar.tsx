@@ -7,6 +7,7 @@ import {
   ScrollText,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Utensils,
   Menu,
   X,
@@ -16,11 +17,13 @@ import {
   ShoppingBag,
   ChefHat,
   Wallet,
+  BarChart3,
+  Monitor,
 } from 'lucide-react';
 import { useAuthStore } from '../../core/store/useAuthStore';
 import type { TipoUsuario } from '../../core/types/auth.types';
 
-interface NavItem {
+interface NavSubItem {
   label: string;
   to: string;
   icon: React.ReactNode;
@@ -28,17 +31,68 @@ interface NavItem {
   adminOnly?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { label: 'Dashboard', to: '/', icon: <LayoutDashboard size={20} /> },
-  { label: 'Venta (POS)', to: '/pos', icon: <ShoppingBag size={20} />, permission: 'CU17:ver' },
-  { label: 'Caja', to: '/caja', icon: <Wallet size={20} />, permission: 'CU16:ver' },
-  { label: 'Cocina', to: '/cocina', icon: <ChefHat size={20} />, permission: 'CU20:ver' },
-  { label: 'Catálogo', to: '/admin/catalogo', icon: <Utensils size={20} />, permission: 'CU8:ver' },
-  { label: 'Usuarios', to: '/admin/usuarios', icon: <Users size={20} />, permission: 'CU5:ver' },
-  { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={20} />, permission: 'CU7:ver' },
-  { label: 'Empresa', to: '/admin/empresa', icon: <Building size={20} />, adminOnly: true },
-  { label: 'Inventario', to: '/admin/inventario', icon: <Package size={20} />, permission: 'CU30:ver' },
-  { label: 'Roles', to: '/admin/roles', icon: <Shield size={20} />, permission: 'CU6:ver' },
+interface NavGroupItem {
+  type: 'group';
+  label: string;
+  icon: React.ReactNode;
+  items: NavSubItem[];
+}
+
+interface NavSingleItem {
+  type: 'single';
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+}
+
+type MenuItem = NavSingleItem | NavGroupItem;
+
+const adminStructure: MenuItem[] = [
+  {
+    type: 'single',
+    label: 'Dashboard',
+    to: '/',
+    icon: <LayoutDashboard size={20} />
+  },
+  {
+    type: 'group',
+    label: 'Ventas y Caja',
+    icon: <ShoppingBag size={20} />,
+    items: [
+      { label: 'Venta (POS)', to: '/pos', icon: <ShoppingBag size={18} />, permission: 'CU17:ver' },
+      { label: 'Caja', to: '/caja', icon: <Wallet size={18} />, permission: 'CU16:ver' },
+      { label: 'Cocina', to: '/cocina', icon: <ChefHat size={18} />, permission: 'CU20:ver' },
+      { label: 'Reportes', to: '/admin/reportes', icon: <BarChart3 size={18} />, adminOnly: true },
+      { label: 'Pantalla Cliente', to: '/admin/seguimiento', icon: <Monitor size={18} />, adminOnly: true },
+    ]
+  },
+  {
+    type: 'group',
+    label: 'Inventario',
+    icon: <Package size={20} />,
+    items: [
+      { label: 'Catálogo', to: '/admin/catalogo', icon: <Utensils size={18} />, permission: 'CU8:ver' },
+      { label: 'Insumos', to: '/admin/inventario', icon: <Package size={18} />, permission: 'CU30:ver' },
+    ]
+  },
+  {
+    type: 'group',
+    label: 'Seguridad',
+    icon: <Shield size={20} />,
+    items: [
+      { label: 'Usuarios', to: '/admin/usuarios', icon: <Users size={18} />, permission: 'CU5:ver' },
+      { label: 'Roles', to: '/admin/roles', icon: <Shield size={18} />, permission: 'CU6:ver' },
+      { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={18} />, permission: 'CU7:ver' },
+    ]
+  },
+  {
+    type: 'group',
+    label: 'Configuración',
+    icon: <Building size={20} />,
+    items: [
+      { label: 'Empresa', to: '/admin/empresa', icon: <Building size={18} />, adminOnly: true },
+    ]
+  }
 ];
 
 interface SidebarProps {
@@ -54,19 +108,98 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
+  // Guardar qué grupos están expandidos
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    'Mi Portal': true,
+    'Portal Cliente': false
+  });
+
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const visibleItems = navItems.filter((item: any) => {
-    const rolActual: any = tipoUsuario || '';
-    if (rolActual === 'Admin') return true;
-    if (item.adminOnly && rolActual !== 'Admin') return false;
+  const hasPermission = (item: { permission?: string; adminOnly?: boolean }) => {
+    if (tipoUsuario === 'Admin') return true;
+    if (item.adminOnly) return false;
     if (item.permission) {
       return (permisos || []).includes(item.permission);
     }
     return true;
-  });
+  };
+
+  const getFilteredMenu = () => {
+    if (tipoUsuario === 'Cliente') {
+      return [
+        {
+          type: 'group' as const,
+          label: 'Mi Portal',
+          icon: <ShoppingBag size={20} />,
+          items: [
+            { label: 'Comprar', to: '/cliente/comprar', icon: <ShoppingBag size={18} /> },
+            { label: 'Mis Tickets', to: '/cliente/tickets', icon: <ScrollText size={18} /> },
+            { label: 'Mis Pedidos', to: '/cliente/notificaciones', icon: <Monitor size={18} /> },
+          ]
+        }
+      ];
+    }
+
+    // Para administradores y personal
+    const filtered = adminStructure.map(group => {
+      if (group.type === 'single') {
+        return group;
+      }
+      // Filtrar sub-items
+      const visibleSubItems = group.items.filter(item => hasPermission(item));
+      if (visibleSubItems.length === 0) return null;
+      return {
+        ...group,
+        items: visibleSubItems
+      };
+    }).filter(Boolean) as MenuItem[];
+
+    // Si es Admin, agregamos el "Portal Cliente (Simulado)"
+    if (tipoUsuario === 'Admin') {
+      filtered.push({
+        type: 'group' as const,
+        label: 'Portal Cliente',
+        icon: <Users size={20} />,
+        items: [
+          { label: 'Comprar (Cliente)', to: '/cliente/comprar', icon: <ShoppingBag size={18} /> },
+          { label: 'Mis Tickets (Cliente)', to: '/cliente/tickets', icon: <ScrollText size={18} /> },
+          { label: 'Mis Pedidos (Cliente)', to: '/cliente/notificaciones', icon: <Monitor size={18} /> },
+        ]
+      });
+    }
+
+    return filtered;
+  };
+
+  const menu = getFilteredMenu();
+
+  // Auto-expandir el grupo que contiene el path activo al cambiar de ruta
+  useEffect(() => {
+    const activeGroup = menu.find(group => 
+      group.type === 'group' && group.items?.some((item: any) => location.pathname === item.to)
+    );
+    if (activeGroup) {
+      setExpandedGroups(prev => ({
+        ...prev,
+        [activeGroup.label]: true
+      }));
+    }
+  }, [location.pathname, tipoUsuario]);
+
+  const handleGroupClick = (groupLabel: string) => {
+    if (collapsed) {
+      setCollapsed(false);
+      setExpandedGroups({ [groupLabel]: true });
+    } else {
+      setExpandedGroups(prev => ({
+        ...prev,
+        [groupLabel]: !prev[groupLabel]
+      }));
+    }
+  };
 
   const sidebarContent = (isMobile: boolean) => (
     <div className="flex flex-col h-full bg-[#0f172a] text-white overflow-hidden">
@@ -98,34 +231,108 @@ const Sidebar = ({ tipoUsuario }: SidebarProps) => {
       </div>
 
       <nav className="flex-1 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
-        {visibleItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors duration-150 group ${isActive
-                ? 'bg-orange-500 text-white'
-                : 'text-slate-400 hover:bg-white/10 hover:text-white'
-              }`
-            }
-          >
-            <span className="shrink-0">{item.icon}</span>
-            <AnimatePresence mode="wait">
-              {(isMobile || !collapsed) && (
-                <motion.span
-                  key={item.label}
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -6 }}
-                  className="text-sm font-medium whitespace-nowrap"
-                >
-                  {item.label}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </NavLink>
-        ))}
+        {menu.map((item) => {
+          if (item.type === 'single') {
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg transition-colors duration-150 group ${isActive
+                    ? 'bg-orange-500 text-white'
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                  }`
+                }
+              >
+                <span className="shrink-0">{item.icon}</span>
+                <AnimatePresence mode="wait">
+                  {(isMobile || !collapsed) && (
+                    <motion.span
+                      key={item.label}
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -6 }}
+                      className="text-sm font-medium whitespace-nowrap"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </NavLink>
+            );
+          }
+
+          // Es un grupo (dropdown collapsable)
+          const isExpanded = !!expandedGroups[item.label];
+          const isAnyChildActive = item.items?.some((child: any) => location.pathname === child.to);
+
+          return (
+            <div key={item.label} className="mx-2 space-y-1">
+              {/* Cabecera del Grupo */}
+              <button
+                onClick={() => handleGroupClick(item.label)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 ${
+                  isAnyChildActive 
+                    ? 'bg-white/5 text-orange-400 font-semibold' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="shrink-0">{item.icon}</span>
+                  <AnimatePresence mode="wait">
+                    {(isMobile || !collapsed) && (
+                      <motion.span
+                        key={item.label}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -6 }}
+                        className="text-sm font-medium whitespace-nowrap truncate"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+                {(isMobile || !collapsed) && (
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-orange-400' : ''}`}
+                  />
+                )}
+              </button>
+
+              {/* Sub-items del Grupo */}
+              <AnimatePresence initial={false}>
+                {isExpanded && (isMobile || !collapsed) && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pl-4 border-l border-white/10 ml-5 space-y-1"
+                  >
+                    {item.items?.map((child: any) => (
+                      <NavLink
+                        key={child.to}
+                        to={child.to}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-150 text-xs ${isActive
+                            ? 'bg-orange-500 text-white font-bold'
+                            : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                          }`
+                        }
+                      >
+                        <span className="shrink-0">{child.icon}</span>
+                        <span className="font-medium whitespace-nowrap truncate">{child.label}</span>
+                      </NavLink>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
       </nav>
 
       {!isMobile && (

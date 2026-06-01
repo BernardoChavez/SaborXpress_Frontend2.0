@@ -11,6 +11,7 @@ export interface CreateVentaDto {
     tipo_entrega: 'Mesa' | 'Llevar';
     codigo_qr?: string;
     detalles: VentaDetalleDto[];
+    VentaEstado?: string;
 }
 
 export const ventaService = {
@@ -21,5 +22,10 @@ export const ventaService = {
     getVentas: async () => {
         const { data } = await axiosInstance.get('/ventas');
         return data;
+    },
+    getTicket: async (id: number) => {
+        const { data } = await axiosInstance.get(`/ventas/${id}/ticket`);
+        return data;
     }
 };
+

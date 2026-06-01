@@ -1,5 +1,6 @@
 import axiosInstance from '../../api/axios';
-import type { InventarioItem, FichaTransformacion, Receta, CreateInventarioDto } from './types/inventario.types';
+import type { InventarioItem, FichaTransformacion, Receta, CreateInventarioDto, Proveedor, CreateProveedorDto, OrdenCompra } from './types/inventario.types';
+
 
 export const inventarioService = {
     // --- Bruto ---
@@ -55,6 +56,46 @@ export const inventarioService = {
     },
     getRecetasByProducto: async (idProducto: number): Promise<Receta[]> => {
         const { data } = await axiosInstance.get(`/inventario/recetas/${idProducto}`);
+        return data;
+    },
+
+    // --- Proveedores (CU 10) ---
+    getProveedores: async (): Promise<Proveedor[]> => {
+        const { data } = await axiosInstance.get('/proveedores');
+        return data;
+    },
+    createProveedor: async (dto: CreateProveedorDto): Promise<Proveedor> => {
+        const { data } = await axiosInstance.post('/proveedores', dto);
+        return data;
+    },
+    updateProveedor: async (id: number, dto: CreateProveedorDto): Promise<Proveedor> => {
+        const { data } = await axiosInstance.put(`/proveedores/${id}`, dto);
+        return data;
+    },
+    deleteProveedor: async (id: number): Promise<any> => {
+        const { data } = await axiosInstance.delete(`/proveedores/${id}`);
+        return data;
+    },
+
+    // --- Compras (CU 23, 27, 28) ---
+    getCompras: async (): Promise<OrdenCompra[]> => {
+        const { data } = await axiosInstance.get('/ordenes-compra');
+        return data;
+    },
+    createCompra: async (dto: { id_proveedor: number; detalles: { id_bruto: number; cantidad: number; precio_unitario: number }[] }): Promise<OrdenCompra> => {
+        const { data } = await axiosInstance.post('/ordenes-compra', dto);
+        return data;
+    },
+    getCompraById: async (id: number): Promise<OrdenCompra> => {
+        const { data } = await axiosInstance.get(`/ordenes-compra/${id}`);
+        return data;
+    },
+    recibirMercancia: async (id: number): Promise<OrdenCompra> => {
+        const { data } = await axiosInstance.post(`/ordenes-compra/${id}/recibir`);
+        return data;
+    },
+    cancelarCompra: async (id: number): Promise<OrdenCompra> => {
+        const { data } = await axiosInstance.post(`/ordenes-compra/${id}/cancelar`);
         return data;
     }
 };

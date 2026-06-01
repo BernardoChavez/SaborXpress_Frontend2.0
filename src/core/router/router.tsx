@@ -15,6 +15,11 @@ import UnauthorizedPage from '../../modules/auth/pages/UnauthorizedPage';
 
 // Módulos
 import DashboardPage from '../../modules/dashboard/pages/DashboardPage';
+import ReportesPage from '../../modules/dashboard/pages/ReportesPage';
+import SeguimientoPedidoPage from '../../modules/dashboard/pages/SeguimientoPedidoPage';
+import ClienteComprarPage from '../../modules/dashboard/pages/ClienteComprarPage';
+import ClienteTicketsPage from '../../modules/dashboard/pages/ClienteTicketsPage';
+import ClienteNotificacionesPage from '../../modules/dashboard/pages/ClienteNotificacionesPage';
 import UsuariosPage  from '../../modules/usuarios/pages/UsuariosPage';
 import CatalogoPage  from '../../modules/catalogo/pages/CatalogoPage';
 import BitacoraPage  from '../../modules/bitacora/pages/BitacoraPage';
@@ -105,7 +110,19 @@ export const router = createBrowserRouter([
                 },
                 {
                     element: <ProtectedRoute allowedRoles={['Admin']} />,
-                    children: [{ path: 'admin/empresa', element: <EmpresaPage /> }]
+                    children: [
+                        { path: 'admin/empresa', element: <EmpresaPage /> },
+                        { path: 'admin/reportes', element: <ReportesPage /> },
+                        { path: 'admin/seguimiento', element: <SeguimientoPedidoPage /> }
+                    ]
+                },
+                {
+                    element: <ProtectedRoute allowedRoles={['Cliente']} />,
+                    children: [
+                        { path: 'cliente/comprar', element: <ClienteComprarPage /> },
+                        { path: 'cliente/tickets', element: <ClienteTicketsPage /> },
+                        { path: 'cliente/notificaciones', element: <ClienteNotificacionesPage /> }
+                    ]
                 },
             ]
         },

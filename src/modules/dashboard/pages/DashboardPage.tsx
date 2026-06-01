@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users, ShoppingBag, Tag,
   ShieldCheck, Utensils, CreditCard,
-  Clock, Activity, ArrowUpRight
+  Clock, Activity, ArrowUpRight,
+  FileSpreadsheet, TrendingUp, Package, Download
 } from 'lucide-react';
 import { useAuthStore } from '../../../core/store/useAuthStore';
 import axiosInstance from '../../../api/axios';
@@ -66,6 +67,29 @@ const DashboardPage = () => {
   const [recentActivity, setRecentActivity] = useState<BitacoraEntry[]>([]);
   const [roleCounts, setRoleCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState<'ventas' | 'inventario' | null>(null);
+
+  const downloadReport = async (type: 'ventas' | 'inventario') => {
+    setDownloading(type);
+    try {
+      const response = await axiosInstance.get(`/reportes/${type}`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `reporte_${type}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(`Error downloading ${type} report:`, error);
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -268,6 +292,73 @@ const DashboardPage = () => {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ── Sección de Reportes Operativos (CU36) ─────────────────────────── */}
+      {isAdmin && (
+        <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-8 py-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 text-orange-600 rounded-xl">
+                <FileSpreadsheet size={18} />
+              </div>
+              <div>
+                <h2 className="text-sm font-black uppercase tracking-widest text-slate-800 italic">Reportes Gerenciales</h2>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Exportación directa en formato CSV compatible con Excel</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Reporte de Ventas */}
+            <div className="group relative overflow-hidden rounded-[32px] p-6 border border-gray-100 bg-gradient-to-br from-slate-50 to-white hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-orange-500 to-orange-600 opacity-[0.02] rounded-bl-[80px] transition-all group-hover:opacity-[0.05]" />
+              <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
+                <div>
+                  <div className="p-3 w-fit rounded-2xl bg-orange-100 text-orange-600 mb-4 group-hover:scale-110 transition-transform">
+                    <TrendingUp size={20} />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight italic">Movimientos de Caja y Ventas</h3>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Obtén el detalle consolidado de todas las ventas registradas, importes, impuestos, formas de pago y estado de caja del período actual.
+                  </p>
+                </div>
+                <button
+                  onClick={() => downloadReport('ventas')}
+                  disabled={downloading === 'ventas'}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-md disabled:opacity-50"
+                >
+                  <Download size={14} className={downloading === 'ventas' ? 'animate-bounce' : ''} />
+                  {downloading === 'ventas' ? 'Generando...' : 'Descargar Reporte'}
+                </button>
+              </div>
+            </div>
+
+            {/* Reporte de Insumos */}
+            <div className="group relative overflow-hidden rounded-[32px] p-6 border border-gray-100 bg-gradient-to-br from-slate-50 to-white hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-[0.02] rounded-bl-[80px] transition-all group-hover:opacity-[0.05]" />
+              <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
+                <div>
+                  <div className="p-3 w-fit rounded-2xl bg-emerald-100 text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
+                    <Package size={20} />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight italic">Stock e Inventarios</h3>
+                  <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Accede a la lista actualizada de insumos, stock disponible, costos base, valorización de inventario y alertas de reposición crítica.
+                  </p>
+                </div>
+                <button
+                  onClick={() => downloadReport('inventario')}
+                  disabled={downloading === 'inventario'}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all duration-300 shadow-md disabled:opacity-50"
+                >
+                  <Download size={14} className={downloading === 'inventario' ? 'animate-bounce' : ''} />
+                  {downloading === 'inventario' ? 'Generando...' : 'Descargar Reporte'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

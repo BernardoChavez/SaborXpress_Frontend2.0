@@ -30,6 +30,7 @@ import { cajaService } from '../services/cajaService';
 import { ventaService } from '../services/ventaService';
 import { useNavigate } from 'react-router-dom';
 import type { Categoria, Producto } from '../../catalogo/types/catalogo.types';
+import TicketModal from '../components/TicketModal';
 
 interface CartItem extends Producto {
   cantidad: number;
@@ -52,6 +53,11 @@ const POSPage = () => {
   // Estados para Cobro Estilo Supermercado
   const [montoRecibido, setMontoRecibido] = useState<string>('');
   const [qrConfirmado, setQrConfirmado] = useState(false);
+  const [ventaEstado, setVentaEstado] = useState('');
+
+  // Estados para Ticket de Venta (CU22)
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketText, setTicketText] = useState('');
 
   useEffect(() => {
     checkCaja();
@@ -116,20 +122,33 @@ const POSPage = () => {
   const handleFinalizarVenta = async () => {
     setSubmitting(true);
     try {
-      await ventaService.registrar({
+      const res = await ventaService.registrar({
         metodo_pago: metodoPago,
         tipo_entrega: tipoEntrega,
         detalles: cart.map(i => ({
           id_producto: i.id,
           cantidad: i.cantidad,
           precio_unitario: Number(i.precio_venta)
-        }))
+        })),
+        VentaEstado: ventaEstado
       });
+
+      // Obtener el ticket en texto formateado para ticketera (CU22)
+      try {
+        const ticketData = await ventaService.getTicket(res.venta.id);
+        if (ticketData && ticketData.ticket_text) {
+          setTicketText(ticketData.ticket_text);
+          setShowTicketModal(true);
+        }
+      } catch (err) {
+        console.error('Error fetching ticket:', err);
+      }
+
       setCart([]);
       setShowCheckout(false);
       setMontoRecibido('');
       setQrConfirmado(false);
-      alert('Venta realizada con éxito');
+      setVentaEstado('');
     } catch (e) {
       alert('Error al procesar venta');
     } finally {
@@ -259,12 +278,12 @@ const POSPage = () => {
         </div>
       </div>
 
-      {/* ── Checkout Modal (REFINED DESIGN) ─────────────────────────── */}
+      {/* ── Checkout Modal ─────────────────────────────────────────── */}
       <AnimatePresence>
         {showCheckout && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCheckout(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-                <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-[40px] shadow-2xl w-full max-w-3xl overflow-hidden flex h-[500px]">
+                <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-white rounded-[40px] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col md:flex-row min-h-[550px] max-h-[90vh]">
                     
                     {/* Left: Summary Panel */}
                     <div className="w-72 bg-gray-50 p-8 border-r border-gray-100 flex flex-col">
@@ -284,8 +303,8 @@ const POSPage = () => {
                     </div>
 
                     {/* Right: Payment Panel */}
-                    <div className="flex-1 p-10 flex flex-col justify-between">
-                        <div className="space-y-8">
+                    <div className="flex-1 p-8 md:p-10 flex flex-col overflow-y-auto">
+                        <div className="flex-1 space-y-6">
                             {/* Metodo Select */}
                             <div className="flex gap-4">
                                 <button onClick={() => setMetodoPago('Efectivo')} className={`flex-1 p-4 rounded-3xl border-2 transition-all flex items-center gap-3 ${metodoPago === 'Efectivo' ? 'border-orange-500 bg-orange-50' : 'border-gray-100 hover:border-gray-200'}`}>
@@ -334,10 +353,23 @@ const POSPage = () => {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
+                            {/* Campo de Observaciones */}
+                            <div className="space-y-1.5 pt-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase ml-2 flex items-center gap-2">
+                                    <ShoppingBag size={12}/> Observaciones / Comentario
+                                </label>
+                                <textarea 
+                                    placeholder="Ej: Contado, pago directo..."
+                                    value={ventaEstado}
+                                    onChange={e => setVentaEstado(e.target.value)}
+                                    className="w-full px-5 py-3 bg-gray-50 border-2 border-gray-100 rounded-2xl text-xs font-medium outline-none focus:border-orange-500 transition-all resize-none h-20"
+                                />
+                            </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-3">
+                        {/* Actions - Fixed at the bottom of the panel */}
+                        <div className="flex gap-3 pt-6 mt-auto bg-white sticky bottom-0">
                             <button onClick={() => setShowCheckout(false)} className="px-8 py-4 bg-gray-50 hover:bg-gray-100 text-gray-400 font-black rounded-2xl transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
                             <button 
                                 disabled={submitting || (metodoPago === 'Efectivo' && !puedePagarEfectivo) || (metodoPago === 'QR' && !qrConfirmado)} 
@@ -355,6 +387,12 @@ const POSPage = () => {
             </div>
         )}
       </AnimatePresence>
+
+      <TicketModal 
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        ticketText={ticketText}
+      />
     </div>
   );
 };
