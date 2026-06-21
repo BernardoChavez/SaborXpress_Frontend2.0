@@ -8,10 +8,10 @@ import AuthLayout from '../../layouts/AuthLayout';
 import ProtectedRoute from '../../shared/components/ProtectedRoute';
 
 // Auth pages
-import LoginPage from '../../modules/auth/pages/LoginPage';
-import RegisterPage from '../../modules/auth/pages/RegisterPage';
-import RecoverPasswordPage from '../../modules/auth/pages/RecoverPasswordPage';
-import UnauthorizedPage from '../../modules/auth/pages/UnauthorizedPage';
+import LoginPage from '../../modules/paquete1_seguridad/auth/pages/LoginPage';
+import RegisterPage from '../../modules/paquete1_seguridad/auth/pages/RegisterPage';
+import RecoverPasswordPage from '../../modules/paquete1_seguridad/auth/pages/RecoverPasswordPage';
+import UnauthorizedPage from '../../modules/paquete1_seguridad/auth/pages/UnauthorizedPage';
 
 // Módulos
 import DashboardPage from '../../modules/dashboard/pages/DashboardPage';
@@ -20,15 +20,25 @@ import SeguimientoPedidoPage from '../../modules/dashboard/pages/SeguimientoPedi
 import ClienteComprarPage from '../../modules/dashboard/pages/ClienteComprarPage';
 import ClienteTicketsPage from '../../modules/dashboard/pages/ClienteTicketsPage';
 import ClienteNotificacionesPage from '../../modules/dashboard/pages/ClienteNotificacionesPage';
-import UsuariosPage  from '../../modules/usuarios/pages/UsuariosPage';
-import CatalogoPage  from '../../modules/catalogo/pages/CatalogoPage';
-import BitacoraPage  from '../../modules/bitacora/pages/BitacoraPage';
-import EmpresaPage from '../../modules/empresa/pages/EmpresaPage';
-import RolesPage from '../../modules/roles/pages/RolesPage';
-import InventarioPage from '../../modules/inventario/pages/InventarioPage';
-import POSPage from '../../modules/ventas/pages/POSPage';
-import CajaPage from '../../modules/ventas/pages/CajaPage';
-import CocinaPage from '../../modules/cocina/pages/CocinaPage';
+import UsuariosPage  from '../../modules/paquete2_personal/usuarios/pages/UsuariosPage';
+import CatalogoPage  from '../../modules/paquete3_configuracion/catalogo/pages/CatalogoPage';
+import BitacoraPage  from '../../modules/paquete9_auditoria/bitacora/pages/BitacoraPage';
+import EmpresaPage from '../../modules/paquete3_configuracion/empresa/pages/EmpresaPage';
+import BackupPage from '../../modules/paquete3_configuracion/backup/pages/BackupPage';
+import RolesPage from '../../modules/paquete1_seguridad/roles/pages/RolesPage';
+import InventarioPage from '../../modules/paquete4_inventarios/inventario/pages/InventarioPage';
+import InsumosPage from '../../modules/paquete4_inventarios/inventario/pages/InsumosPage';
+import ProveedoresPage from '../../modules/paquete4_inventarios/inventario/pages/ProveedoresPage';
+import RecetasPage from '../../modules/paquete4_inventarios/inventario/pages/RecetasPage';
+import OrdenesCompraPage from '../../modules/paquete4_inventarios/inventario/pages/OrdenesCompraPage';
+import RecepcionPage from '../../modules/paquete4_inventarios/inventario/pages/RecepcionPage';
+import TicketsPage from '../../modules/paquete7_comprobantes/comprobantes/pages/TicketsPage';
+import AnulacionesPage from '../../modules/paquete7_comprobantes/comprobantes/pages/AnulacionesPage';
+import FacturasPage from '../../modules/paquete7_comprobantes/comprobantes/pages/FacturasPage';
+import CajaChicaPage from '../../modules/paquete5_ventas/ventas/pages/CajaChicaPage';
+import POSPage from '../../modules/paquete5_ventas/ventas/pages/POSPage';
+import CajaPage from '../../modules/paquete5_ventas/ventas/pages/CajaPage';
+import CocinaPage from '../../modules/paquete6_produccion/cocina/pages/CocinaPage';
 
 // Componente de Error Simple pero Elegante
 const GlobalErrorPage = () => (
@@ -108,10 +118,28 @@ export const router = createBrowserRouter([
                     element: <ProtectedRoute requiredPermission="CU30:ver" />,
                     children: [{ path: 'admin/inventario', element: <InventarioPage /> }]
                 },
+                
+                // Módulos en Construcción (Arquitectura 9 Paquetes)
+                {
+                    element: <ProtectedRoute />,
+                    children: [
+                        { path: 'admin/insumos', element: <InsumosPage /> },
+                        { path: 'admin/proveedores', element: <ProveedoresPage /> },
+                        { path: 'admin/recetas', element: <RecetasPage /> },
+                        { path: 'caja-chica', element: <CajaChicaPage /> },
+                        { path: 'admin/tickets', element: <TicketsPage /> },
+                        { path: 'admin/facturas', element: <FacturasPage /> },
+                        { path: 'admin/anulaciones', element: <AnulacionesPage /> },
+                        { path: 'admin/ordenes', element: <OrdenesCompraPage /> },
+                        { path: 'admin/recepcion', element: <RecepcionPage /> }
+                    ]
+                },
+
                 {
                     element: <ProtectedRoute allowedRoles={['Admin']} />,
                     children: [
                         { path: 'admin/empresa', element: <EmpresaPage /> },
+                        { path: 'admin/backup', element: <BackupPage /> },
                         { path: 'admin/reportes', element: <ReportesPage /> },
                         { path: 'admin/seguimiento', element: <SeguimientoPedidoPage /> }
                     ]

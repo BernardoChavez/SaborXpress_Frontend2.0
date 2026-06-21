@@ -19,6 +19,12 @@ import {
   Wallet,
   BarChart3,
   Monitor,
+  Settings,
+  Receipt,
+  Truck,
+  Key,
+  FileText,
+  Database
 } from 'lucide-react';
 import { useAuthStore } from '../../core/store/useAuthStore';
 import type { TipoUsuario } from '../../core/types/auth.types';
@@ -56,41 +62,86 @@ const adminStructure: MenuItem[] = [
   },
   {
     type: 'group',
-    label: 'Ventas y Caja',
-    icon: <ShoppingBag size={20} />,
-    items: [
-      { label: 'Venta (POS)', to: '/pos', icon: <ShoppingBag size={18} />, permission: 'CU17:ver' },
-      { label: 'Caja', to: '/caja', icon: <Wallet size={18} />, permission: 'CU16:ver' },
-      { label: 'Cocina', to: '/cocina', icon: <ChefHat size={18} />, permission: 'CU20:ver' },
-      { label: 'Reportes', to: '/admin/reportes', icon: <BarChart3 size={18} />, adminOnly: true },
-      { label: 'Pantalla Cliente', to: '/admin/seguimiento', icon: <Monitor size={18} />, adminOnly: true },
-    ]
-  },
-  {
-    type: 'group',
-    label: 'Inventario',
-    icon: <Package size={20} />,
-    items: [
-      { label: 'Catálogo', to: '/admin/catalogo', icon: <Utensils size={18} />, permission: 'CU8:ver' },
-      { label: 'Insumos', to: '/admin/inventario', icon: <Package size={18} />, permission: 'CU30:ver' },
-    ]
-  },
-  {
-    type: 'group',
-    label: 'Seguridad',
+    label: 'P1: Seguridad',
     icon: <Shield size={20} />,
     items: [
-      { label: 'Usuarios', to: '/admin/usuarios', icon: <Users size={18} />, permission: 'CU5:ver' },
-      { label: 'Roles', to: '/admin/roles', icon: <Shield size={18} />, permission: 'CU6:ver' },
-      { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={18} />, permission: 'CU7:ver' },
+      { label: 'Roles y Privilegios', to: '/admin/roles', icon: <Key size={18} />, permission: 'CU06:ver' }
     ]
   },
   {
     type: 'group',
-    label: 'Configuración',
-    icon: <Building size={20} />,
+    label: 'P2: Personal',
+    icon: <Users size={20} />,
     items: [
-      { label: 'Empresa', to: '/admin/empresa', icon: <Building size={18} />, adminOnly: true },
+      { label: 'Usuarios', to: '/admin/usuarios', icon: <Users size={18} />, permission: 'CU05:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P3: Configuración',
+    icon: <Settings size={20} />,
+    items: [
+      { label: 'Datos Empresa', to: '/admin/empresa', icon: <Building size={18} />, adminOnly: true },
+      { label: 'Copias de Seguridad', to: '/admin/backup', icon: <Database size={18} />, adminOnly: true },
+      { label: 'Catálogo', to: '/admin/catalogo', icon: <Utensils size={18} />, permission: 'CU08:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P4: Inventarios',
+    icon: <Package size={20} />,
+    items: [
+      { label: 'Inventario General', to: '/admin/inventario', icon: <Package size={18} />, permission: 'CU11:ver' },
+      { label: 'Insumos Procesados', to: '/admin/insumos', icon: <Package size={18} />, permission: 'CU12:ver' },
+      { label: 'Proveedores', to: '/admin/proveedores', icon: <Truck size={18} />, permission: 'CU10:ver' },
+      { label: 'Fichas/Recetas', to: '/admin/recetas', icon: <ScrollText size={18} />, permission: 'CU35:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P5: Ventas y Caja',
+    icon: <Wallet size={20} />,
+    items: [
+      { label: 'Caja', to: '/caja', icon: <Wallet size={18} />, permission: 'CU15:ver' },
+      { label: 'Venta (POS)', to: '/pos', icon: <ShoppingBag size={18} />, permission: 'CU16:ver' },
+      { label: 'Caja Chica', to: '/caja-chica', icon: <Wallet size={18} />, permission: 'CU32:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P6: Producción',
+    icon: <ChefHat size={20} />,
+    items: [
+      { label: 'Comandas', to: '/cocina', icon: <ChefHat size={18} />, permission: 'CU20:ver' },
+      { label: 'Pantalla Cliente', to: '/admin/seguimiento', icon: <Monitor size={18} />, permission: 'CU19:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P7: Comprobantes',
+    icon: <Receipt size={20} />,
+    items: [
+      { label: 'Tickets Operativos', to: '/admin/tickets', icon: <Receipt size={18} />, permission: 'CU22:ver' },
+      { label: 'Facturas Emitidas', to: '/admin/facturas', icon: <FileText size={18} />, permission: 'CU25:ver' },
+      { label: 'Anulaciones', to: '/admin/anulaciones', icon: <X size={18} />, permission: 'CU26:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P8: Compras',
+    icon: <Truck size={20} />,
+    items: [
+      { label: 'Órdenes de Compra', to: '/admin/ordenes', icon: <ScrollText size={18} />, permission: 'CU27:ver' },
+      { label: 'Recepción', to: '/admin/recepcion', icon: <Package size={18} />, permission: 'CU28:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P9: Auditoría',
+    icon: <BarChart3 size={20} />,
+    items: [
+      { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={18} />, permission: 'CU07:ver' },
+      { label: 'Reportes y Finanzas', to: '/admin/reportes', icon: <BarChart3 size={18} />, permission: 'CU33:ver' }
     ]
   }
 ];

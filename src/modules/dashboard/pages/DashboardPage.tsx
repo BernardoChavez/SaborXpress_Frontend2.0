@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../../core/store/useAuthStore';
 import axiosInstance from '../../../api/axios';
-import type { BitacoraEntry } from '../../bitacora/types/bitacora.types';
+import type { BitacoraEntry } from '../../paquete9_auditoria/bitacora/types/bitacora.types';
 
 // ── Tipos locales ─────────────────────────────────────────────────────────────
 interface Stats {
@@ -91,22 +91,31 @@ const DashboardPage = () => {
     }
   };
 
+  const [rentabilidad, setRentabilidad] = useState({
+    ingresos_totales: '0.00',
+    costos_materia_prima: '0.00',
+    utilidad_bruta: '0.00',
+    margen_rentabilidad: '0.00'
+  });
+
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       try {
         if (tipoUsuario === 'Admin') {
-          const [usersRes, catsRes, prodsRes, bitRes] = await Promise.allSettled([
+          const [usersRes, catsRes, prodsRes, bitRes, rentRes] = await Promise.allSettled([
             axiosInstance.get('/usuarios'),
             axiosInstance.get('/categorias'),
             axiosInstance.get('/productos'),
             axiosInstance.get('/bitacora'),
+            axiosInstance.get('/reportes/rentabilidad'),
           ]);
 
           const users = usersRes.status === 'fulfilled' ? usersRes.value.data : [];
           const cats = catsRes.status === 'fulfilled' ? catsRes.value.data : [];
           const prods = prodsRes.status === 'fulfilled' ? prodsRes.value.data : [];
           const bits = bitRes.status === 'fulfilled' ? bitRes.value.data : [];
+          if (rentRes.status === 'fulfilled') setRentabilidad(rentRes.value.data);
 
           setStats({
             usuarios: users.length,
@@ -154,10 +163,16 @@ const DashboardPage = () => {
       label: 'Platos & Bebidas', value: stats.productos, icon: <ShoppingBag size={22} />,
       gradient: 'from-emerald-500 to-emerald-600', link: isAdmin ? '/admin/catalogo' : undefined,
     },
-    ...(isAdmin ? [{
-      label: 'Acciones Auditadas', value: stats.bitacora, icon: <ShieldCheck size={22} />,
-      gradient: 'from-blue-600 to-blue-800', link: '/admin/bitacora',
-    }] : []),
+    ...(isAdmin ? [
+      {
+        label: 'Margen de Rentabilidad', value: `${rentabilidad.margen_rentabilidad}%`, icon: <TrendingUp size={22} />,
+        gradient: 'from-indigo-600 to-indigo-800', link: undefined,
+      },
+      {
+        label: 'Acciones Auditadas', value: stats.bitacora, icon: <ShieldCheck size={22} />,
+        gradient: 'from-blue-600 to-blue-800', link: '/admin/bitacora',
+      }
+    ] : []),
   ];
 
   const roleConfig: Record<string, { icon: React.ReactNode; color: string; desc: string }> = {
@@ -187,7 +202,7 @@ const DashboardPage = () => {
       </div>
 
       {/* ── Tarjetas resumen ───────────────────────────────────────────────── */}
-      <div className={`grid gap-5 ${isAdmin ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'}`}>
+      <div className={`grid gap-5 ${isAdmin ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-2'}`}>
         {summaryCards.map((card) => (
           <div
             key={card.label}
@@ -211,6 +226,50 @@ const DashboardPage = () => {
           </div>
         ))}
       </div>
+
+      {/* ── Desglose de Rentabilidad ───────────────────────────────────────── */}
+      {isAdmin && (
+        <div className="bg-indigo-900 rounded-[40px] shadow-2xl p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl" />
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-indigo-500/20 text-indigo-300 rounded-2xl">
+                <TrendingUp size={24} />
+              </div>
+              <div>
+                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-indigo-300">Inteligencia de Negocio</h2>
+                <h3 className="text-2xl font-black italic tracking-tighter">ANÁLISIS DE RENTABILIDAD</h3>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-sm">
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">Ingresos Brutos (Ventas)</p>
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl font-black italic tracking-tighter text-white">Bs. {loading ? '...' : rentabilidad.ingresos_totales}</span>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-sm">
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-300 mb-2">Costo Est. Materia Prima (40%)</p>
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl font-black italic tracking-tighter text-red-100">Bs. {loading ? '...' : rentabilidad.costos_materia_prima}</span>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl p-6 shadow-lg shadow-indigo-900/50">
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-100 mb-2">Utilidad Bruta Operativa</p>
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl font-black italic tracking-tighter text-white">Bs. {loading ? '...' : rentabilidad.utilidad_bruta}</span>
+                </div>
+                <div className="mt-2 text-xs font-medium text-indigo-200">
+                  Margen: <span className="font-bold text-white">{loading ? '...' : rentabilidad.margen_rentabilidad}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Grid Actividad Directa ─────────────────────────────────────────── */}
       {isAdmin && (

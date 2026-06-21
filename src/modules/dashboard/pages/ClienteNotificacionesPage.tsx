@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Bell, Clock, UtensilsCrossed, CheckCircle2, RefreshCw, Loader, ShoppingBag
 } from 'lucide-react';
-import { ventaService } from '../../ventas/services/ventaService';
+import { ventaService } from '../../paquete5_ventas/ventas/services/ventaService';
 
 interface OrderState {
   id: number;

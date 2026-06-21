@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   FileText, Clock, CreditCard, ChevronRight, Receipt, Loader
 } from 'lucide-react';
-import { ventaService } from '../../ventas/services/ventaService';
-import TicketModal from '../../ventas/components/TicketModal';
+import { ventaService } from '../../paquete5_ventas/ventas/services/ventaService';
+import TicketModal from '../../paquete5_ventas/ventas/components/TicketModal';
 
 const ClienteTicketsPage = () => {
   const [compras, setCompras] = useState<any[]>([]);

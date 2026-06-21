@@ -3,10 +3,10 @@ import {
   ShoppingBag, Search, Plus, Minus, Trash2, ChevronRight, Loader, QrCode, Upload, CheckCircle2, Utensils
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { categoriaService, productoService } from '../../catalogo/catalogoService';
-import { ventaService } from '../../ventas/services/ventaService';
-import type { Categoria, Producto } from '../../catalogo/types/catalogo.types';
-import TicketModal from '../../ventas/components/TicketModal';
+import { categoriaService, productoService } from '../../paquete3_configuracion/catalogo/catalogoService';
+import { ventaService } from '../../paquete5_ventas/ventas/services/ventaService';
+import type { Categoria, Producto } from '../../paquete3_configuracion/catalogo/types/catalogo.types';
+import TicketModal from '../../paquete5_ventas/ventas/components/TicketModal';
 import { useNavigate } from 'react-router-dom';
 
 interface CartItem extends Producto {
