@@ -40,7 +40,9 @@ import CajaChicaPage from '../../modules/paquete5_ventas/ventas/pages/CajaChicaP
 import POSPage from '../../modules/paquete5_ventas/ventas/pages/POSPage';
 import CajaPage from '../../modules/paquete5_ventas/ventas/pages/CajaPage';
 import CocinaPage from '../../modules/paquete6_produccion/cocina/pages/CocinaPage';
-
+import { MesasMapView } from '../../modules/paquete10_mesas_reservas_resenas/pages/MesasMapView';
+import { ResenasDashboardView } from '../../modules/paquete10_mesas_reservas_resenas/pages/ResenasDashboardView';
+import { FeedbackForm } from '../../modules/paquete10_mesas_reservas_resenas/pages/FeedbackForm';
 // Componente de Error Simple pero Elegante
 const GlobalErrorPage = () => (
     <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 p-10 text-center">
@@ -70,6 +72,9 @@ export const router = createBrowserRouter([
 
         // ── Ruta de error de permisos ─────────────────────────────────────────────
         { path: 'unauthorized', element: <UnauthorizedPage /> },
+
+        // ── Rutas públicas (Reseñas) ──────────────────────────────────────────────
+        { path: 'feedback/:id', element: <FeedbackForm /> },
 
         // ── Rutas protegidas ──────────────────────────────────────────────────────
         {
@@ -132,7 +137,9 @@ export const router = createBrowserRouter([
                         { path: 'admin/facturas', element: <FacturasPage /> },
                         { path: 'admin/anulaciones', element: <AnulacionesPage /> },
                         { path: 'admin/ordenes', element: <OrdenesCompraPage /> },
-                        { path: 'admin/recepcion', element: <RecepcionPage /> }
+                        { path: 'admin/recepcion', element: <RecepcionPage /> },
+                        { path: 'admin/mesas', element: <MesasMapView /> },
+                        { path: 'admin/resenas', element: <ResenasDashboardView /> }
                     ]
                 },
 

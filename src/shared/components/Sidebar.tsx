@@ -24,7 +24,8 @@ import {
   Truck,
   Key,
   FileText,
-  Database
+  Database,
+  Star
 } from 'lucide-react';
 import { useAuthStore } from '../../core/store/useAuthStore';
 import type { TipoUsuario } from '../../core/types/auth.types';
@@ -142,6 +143,15 @@ const adminStructure: MenuItem[] = [
     items: [
       { label: 'Bitácora', to: '/admin/bitacora', icon: <ScrollText size={18} />, permission: 'CU07:ver' },
       { label: 'Reportes y Finanzas', to: '/admin/reportes', icon: <BarChart3 size={18} />, permission: 'CU33:ver' }
+    ]
+  },
+  {
+    type: 'group',
+    label: 'P10: CRM & Mesas',
+    icon: <Star size={20} />,
+    items: [
+      { label: 'Mapa de Mesas', to: '/admin/mesas', icon: <LayoutDashboard size={18} />, permission: 'CU16:ver' }, // Using CU16 as temporary since CU37 isn't seeded
+      { label: 'Reseñas', to: '/admin/resenas', icon: <Star size={18} />, permission: 'CU16:ver' }
     ]
   }
 ];
