@@ -106,7 +106,8 @@ const adminStructure: MenuItem[] = [
     items: [
       { label: 'Caja', to: '/caja', icon: <Wallet size={18} />, permission: 'CU15:ver' },
       { label: 'Venta (POS)', to: '/pos', icon: <ShoppingBag size={18} />, permission: 'CU16:ver' },
-      { label: 'Caja Chica', to: '/caja-chica', icon: <Wallet size={18} />, permission: 'CU32:ver' }
+      { label: 'Caja Chica', to: '/caja-chica', icon: <Wallet size={18} />, permission: 'CU32:ver' },
+      { label: 'Servicios de Catering', to: '/admin/catering', icon: <ScrollText size={18} />, adminOnly: true }
     ]
   },
   {
@@ -153,14 +154,6 @@ const adminStructure: MenuItem[] = [
     items: [
       { label: 'Mapa de Mesas', to: '/admin/mesas', icon: <LayoutDashboard size={18} />, permission: 'CU16:ver' }, // Using CU16 as temporary since CU37 isn't seeded
       { label: 'Reseñas', to: '/admin/resenas', icon: <Star size={18} />, permission: 'CU16:ver' }
-    ]
-  },
-  {
-    type: 'group',
-    label: 'P11: Servicios Especiales',
-    icon: <Package size={20} />,
-    items: [
-      { label: 'Servicios de Catering', to: '/admin/catering', icon: <ScrollText size={18} />, adminOnly: true }
     ]
   }
 ];

@@ -43,7 +43,7 @@ import CocinaPage from '../../modules/paquete6_produccion/cocina/pages/CocinaPag
 import { MesasMapView } from '../../modules/paquete10_mesas_reservas_resenas/pages/MesasMapView';
 import { ResenasDashboardView } from '../../modules/paquete10_mesas_reservas_resenas/pages/ResenasDashboardView';
 import { FeedbackForm } from '../../modules/paquete10_mesas_reservas_resenas/pages/FeedbackForm';
-import CateringPage from '../../modules/paquete11_servicios_especiales/catering/pages/CateringPage';
+import CateringPage from '../../modules/paquete5_ventas/catering/pages/CateringPage';
 import { AlertasPage } from '../../modules/paquete4_inventarios/inventario/pages/AlertasPage';
 // Componente de Error Simple pero Elegante
 const GlobalErrorPage = () => (
