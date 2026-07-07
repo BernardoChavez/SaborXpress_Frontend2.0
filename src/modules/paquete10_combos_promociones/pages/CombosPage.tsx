@@ -55,7 +55,7 @@ export default function CombosPage() {
             {/* Header Premium con Gradiente */}
             <div className="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-orange-500 via-red-500 to-rose-600 p-8 rounded-[2.5rem] shadow-2xl shadow-orange-500/30">
                 <div className="text-white mb-4 md:mb-0">
-                    <h1 className="text-4xl font-black mb-2 tracking-tight">Gestión de Combos ✨</h1>
+                    <h1 className="text-4xl font-black mb-2 tracking-tight">Gestión de Combos</h1>
                     <p className="text-orange-100 font-medium text-lg opacity-90">
                         Arma paquetes atractivos para tus clientes y aumenta tus ventas.
                     </p>

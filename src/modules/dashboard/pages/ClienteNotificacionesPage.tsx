@@ -173,11 +173,11 @@ const ClienteNotificacionesPage = () => {
                 {/* Mensaje de despacho */}
                 {currentStep === 2 ? (
                   <div className="bg-green-500 text-white text-center py-3 rounded-2xl font-black text-[10px] uppercase tracking-wider shadow-md">
-                    ¡Pedido Listo! Pasa al mostrador 🍕
+                    ¡Pedido Listo! Pasa al mostrador
                   </div>
                 ) : (
                   <div className="bg-slate-900 text-slate-300 text-center py-3 rounded-2xl font-black text-[10px] uppercase tracking-wider">
-                    Preparando comida en cocina... 🍲
+                    Preparando comida en cocina...
                   </div>
                 )}
                 

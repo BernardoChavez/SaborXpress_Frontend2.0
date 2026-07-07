@@ -55,7 +55,7 @@ export default function PromocionesPage() {
             {/* Header Premium con Gradiente Distinto (Morado/Rosa para Marketing) */}
             <div className="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 p-8 rounded-[2.5rem] shadow-2xl shadow-purple-500/30">
                 <div className="text-white mb-4 md:mb-0">
-                    <h1 className="text-4xl font-black mb-2 tracking-tight">Reglas de Promociones 🚀</h1>
+                    <h1 className="text-4xl font-black mb-2 tracking-tight">Reglas de Promociones</h1>
                     <p className="text-purple-100 font-medium text-lg opacity-90">
                         Configura descuentos, 2x1 y días especiales de forma automática.
                     </p>

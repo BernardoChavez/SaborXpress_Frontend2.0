@@ -20,6 +20,6 @@ export interface CateringServicio {
   cantidad_personas: number;
   observaciones?: string;
   precio_total: number;
-  estado: 'Pendiente' | 'Confirmado' | 'En preparación' | 'Finalizado' | 'Cancelado';
+  estado: 'Pendiente' | 'Confirmado' | 'En preparación' | 'Finalizado' | 'Cancelado' | 'Entregado';
   detalles: CateringDetalle[];
 }

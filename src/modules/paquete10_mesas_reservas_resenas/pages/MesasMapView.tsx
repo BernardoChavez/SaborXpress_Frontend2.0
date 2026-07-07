@@ -65,13 +65,13 @@ const TableShape = ({ mesa, isSelected, onClick }: { mesa: any, isSelected: bool
           </span>
           
           <span 
-            className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-1 shadow-inner"
+            className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-1 shadow-inner truncate max-w-[70px]"
             style={{ 
               backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.7)',
               color: isSelected ? '#ffffff' : textColor 
             }}
           >
-            {estadoText}
+            {estado === 'reservada' && mesa.reserva_nombre ? `Res: ${mesa.reserva_nombre.split(' ')[0]}` : estadoText}
           </span>
         </div>
 
@@ -99,6 +99,12 @@ export const MesasMapView = () => {
   const [newEstado, setNewEstado] = useState<string>('libre');
   const [newFila, setNewFila] = useState<number>(1);
   const [newCapacidad, setNewCapacidad] = useState<string>('4');
+  const [reservaNombre, setReservaNombre] = useState<string>('');
+  const [reservaTelefono, setReservaTelefono] = useState<string>('');
+  const [reservaHora, setReservaHora] = useState<string>('');
+
+  // Estado para buscar reserva en tiempo real cuando llega un cliente
+  const [searchReserva, setSearchReserva] = useState<string>('');
 
   // Estados para crear nueva mesa
   const [newTableNumero, setNewTableNumero] = useState('');
@@ -138,6 +144,9 @@ export const MesasMapView = () => {
       setNewEstado(selectedTable.estado);
       setNewFila(selectedTable.fila || 1);
       setNewCapacidad(selectedTable.capacidad ? selectedTable.capacidad.toString() : '4');
+      setReservaNombre(selectedTable.reserva_nombre || '');
+      setReservaTelefono(selectedTable.reserva_telefono || '');
+      setReservaHora(selectedTable.reserva_hora || '');
       onOpen();
     }
   };
@@ -146,37 +155,72 @@ export const MesasMapView = () => {
     if (!selectedTable) return;
     setIsUpdating(true);
     try {
-      await api.put(`/mesas/${selectedTable.id}`, {
+      const updatedData = {
         ...selectedTable,
         estado: newEstado,
         fila: newFila,
-        capacidad: parseInt(newCapacidad)
-      });
+        capacidad: parseInt(newCapacidad),
+        reserva_nombre: newEstado === 'reservada' ? reservaNombre : null,
+        reserva_telefono: newEstado === 'reservada' ? reservaTelefono : null,
+        reserva_hora: newEstado === 'reservada' ? reservaHora : null,
+      };
+      await api.put(`/mesas/${selectedTable.id}`, updatedData);
+
+      if (newEstado === 'reservada' && reservaNombre) {
+        try {
+          await api.post('/reservas', {
+            mesa_id: selectedTable.id,
+            cliente_nombre: `${reservaNombre} (${reservaTelefono})`,
+            fecha: new Date().toISOString().split('T')[0],
+            hora: reservaHora || '20:00',
+            personas: parseInt(newCapacidad),
+            estado: 'confirmada'
+          });
+        } catch (e) {
+          console.error("No se pudo crear historial de reserva:", e);
+        }
+      }
+
       setZonas(prev => prev.map(z => {
         if (z.id === selectedTable.zona_id) {
           return {
             ...z,
-            mesas: z.mesas.map((m: any) => m.id === selectedTable.id ? { 
-              ...m, 
-              estado: newEstado, 
-              fila: newFila, 
-              capacidad: parseInt(newCapacidad) 
-            } : m)
+            mesas: z.mesas.map((m: any) => m.id === selectedTable.id ? updatedData : m)
           };
         }
         return z;
       }));
-      setSelectedTable((prev: any) => ({ 
-        ...prev, 
-        estado: newEstado, 
-        fila: newFila, 
-        capacidad: parseInt(newCapacidad) 
-      }));
+      setSelectedTable(updatedData);
       onClose();
     } catch (err) {
       console.error("Error actualizando mesa:", err);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleOcuparReserva = async (mesa: any) => {
+    try {
+      const updatedData = {
+        ...mesa,
+        estado: 'ocupada',
+        reserva_nombre: null,
+        reserva_telefono: null,
+        reserva_hora: null,
+      };
+      await api.put(`/mesas/${mesa.id}`, updatedData);
+      setZonas(prev => prev.map(z => {
+        if (z.id === mesa.zona_id) {
+          return {
+            ...z,
+            mesas: z.mesas.map((m: any) => m.id === mesa.id ? updatedData : m)
+          };
+        }
+        return z;
+      }));
+      setSearchReserva('');
+    } catch (err) {
+      console.error("Error al ocupar mesa reservada:", err);
     }
   };
 
@@ -286,12 +330,74 @@ export const MesasMapView = () => {
               onOpenCreate();
             }}
             className="font-bold bg-gray-800 text-white shadow-md hover:bg-gray-900 px-5 h-11"
-            radius="xl"
+            radius="lg"
             startContent={<Plus size={18} />}
           >
             + Crear Nueva Fila
           </Button>
         </div>
+
+        {/* Buscador Rápido de Reservas por WhatsApp / Nombre */}
+        <div className="bg-amber-50/80 border-b border-amber-200/60 px-6 md:px-10 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-amber-900 font-bold text-sm w-full md:w-auto">
+            <span className="text-lg font-black">Res.</span>
+            <span>Recepción / Reservas (WhatsApp):</span>
+          </div>
+          <div className="flex items-center gap-2 w-full md:max-w-md relative">
+            <input
+              type="text"
+              placeholder="Buscar reserva por nombre o celular (Ej: Carlos, 7712)..."
+              value={searchReserva}
+              onChange={(e) => setSearchReserva(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl border border-amber-300 bg-white text-gray-800 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <span className="absolute left-3 top-2.5 text-gray-400 font-bold">Q</span>
+            {searchReserva && (
+              <button onClick={() => setSearchReserva('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 font-bold">X</button>
+            )}
+          </div>
+        </div>
+
+        {/* Banner de Resultados de Reserva Encontrada */}
+        {searchReserva.trim() !== '' && (
+          <div className="bg-amber-100 border-b border-amber-300 px-6 md:px-10 py-4">
+            <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 mb-2">Resultados de Búsqueda de Reserva:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {zonas.flatMap(z => z.mesas.map((m: any) => ({ ...m, zonaNombre: z.nombre }))).filter((m: any) => 
+                m.estado === 'reservada' && (
+                  (m.reserva_nombre && m.reserva_nombre.toLowerCase().includes(searchReserva.toLowerCase())) ||
+                  (m.reserva_telefono && m.reserva_telefono.includes(searchReserva))
+                )
+              ).map((m: any) => (
+                <div key={m.id} className="bg-white p-3 rounded-2xl border-2 border-amber-400 shadow-md flex items-center justify-between gap-3 animate-pulse">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="bg-amber-500 text-white font-black text-xs px-2 py-0.5 rounded-md">{m.numero}</span>
+                      <span className="text-xs font-bold text-gray-600">({m.zonaNombre})</span>
+                    </div>
+                    <p className="text-sm font-black text-gray-900 mt-1">Cliente: {m.reserva_nombre}</p>
+                    <p className="text-xs text-amber-700 font-semibold">Tel: {m.reserva_telefono || 'Sin cel'} • Hora: {m.reserva_hora || 'Sin hora'}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white font-black shadow-md shrink-0"
+                    onPress={() => handleOcuparReserva(m)}
+                  >
+                    Sentar Cliente
+                  </Button>
+                </div>
+              ))}
+              {zonas.flatMap(z => z.mesas).filter((m: any) => 
+                m.estado === 'reservada' && (
+                  (m.reserva_nombre && m.reserva_nombre.toLowerCase().includes(searchReserva.toLowerCase())) ||
+                  (m.reserva_telefono && m.reserva_telefono.includes(searchReserva))
+                )
+              ).length === 0 && (
+                <p className="text-sm text-amber-800 italic font-medium">No se encontró ninguna mesa reservada que coincida con "{searchReserva}".</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Contenedor del Grid por Filas (Máximo 4 mesas por fila) */}
         <div className="flex-1 bg-white p-6 md:p-12 relative overflow-y-auto space-y-10">
@@ -398,7 +504,7 @@ export const MesasMapView = () => {
 
           <Button 
             size="lg" 
-            radius="xl"
+            radius="lg"
             onPress={handleOpenModal}
             className={`font-bold px-8 h-14 transition-colors ${
               selectedTable 
@@ -471,6 +577,50 @@ export const MesasMapView = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Formulario de Datos si el estado es Reservada */}
+                {newEstado === 'reservada' && (
+                  <div className="bg-amber-50/90 p-4 rounded-2xl border-2 border-amber-300 space-y-3 shadow-sm">
+                    <div className="flex items-center gap-2 text-amber-900 font-black text-sm">
+                      <Clock size={18} className="text-amber-600" />
+                      <span>Datos de la Reserva (WhatsApp / Recepción)</span>
+                    </div>
+                    <div className="space-y-2.5">
+                      <div>
+                        <label className="block text-[11px] font-black uppercase text-amber-900 mb-1">Nombre y Apellido del Cliente</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Carlos Mendoza"
+                          value={reservaNombre}
+                          onChange={(e) => setReservaNombre(e.target.value)}
+                          className="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-gray-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-inner"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-black uppercase text-amber-900 mb-1">Celular / WhatsApp</label>
+                          <input
+                            type="text"
+                            placeholder="Ej: 77123456"
+                            value={reservaTelefono}
+                            onChange={(e) => setReservaTelefono(e.target.value)}
+                            className="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-gray-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-inner"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-black uppercase text-amber-900 mb-1">Hora y Detalle</label>
+                          <input
+                            type="text"
+                            placeholder="Ej: 20:30 hs - Cumple"
+                            value={reservaHora}
+                            onChange={(e) => setReservaHora(e.target.value)}
+                            className="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-gray-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-inner"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Edición de Fila y Capacidad */}
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 grid grid-cols-2 gap-4 shadow-inner">

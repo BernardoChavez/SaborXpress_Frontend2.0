@@ -121,7 +121,6 @@ const UsuariosPage = () => {
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-16 text-red-400">
-            <p className="text-4xl mb-2">⚠️</p>
             <p className="text-sm font-medium">{error}</p>
             <button
               onClick={fetchUsuarios}

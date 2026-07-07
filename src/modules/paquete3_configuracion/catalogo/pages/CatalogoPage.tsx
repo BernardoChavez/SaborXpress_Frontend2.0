@@ -257,7 +257,6 @@ interface SimpleTableProps {
 const SimpleTable = ({ headers, empty, emptyMsg, children }: SimpleTableProps) => (
   empty ? (
     <div className="text-center py-12 text-gray-400">
-      <p className="text-4xl mb-2">📦</p>
       <p className="text-sm font-medium">{emptyMsg}</p>
     </div>
   ) : (

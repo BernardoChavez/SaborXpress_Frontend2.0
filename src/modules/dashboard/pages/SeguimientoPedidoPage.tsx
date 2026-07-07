@@ -233,12 +233,12 @@ const SeguimientoPedidoPage = () => {
             {/* Banner de Estado Animado */}
             {currentStep === 2 ? (
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-[32px] p-8 text-white text-center shadow-lg shadow-green-100 space-y-2">
-                <h3 className="text-xl font-black italic uppercase tracking-tight">¡TU ORDEN ESTÁ LISTA! 🎉</h3>
+                <h3 className="text-xl font-black italic uppercase tracking-tight">¡TU ORDEN ESTÁ LISTA!</h3>
                 <p className="text-xs font-bold opacity-90">Por favor acércate a la barra de despacho para retirar tus platos calientes.</p>
               </div>
             ) : (
               <div className="bg-slate-900 rounded-[32px] p-8 text-white text-center space-y-2">
-                <h3 className="text-lg font-black italic uppercase tracking-tight animate-pulse text-orange-400">TU COMIDA SE ESTÁ PREPARANDO... 👨‍🍳</h3>
+                <h3 className="text-lg font-black italic uppercase tracking-tight animate-pulse text-orange-400">TU COMIDA SE ESTÁ PREPARANDO...</h3>
                 <p className="text-xs font-bold opacity-80">Nuestros chefs están cocinando con ingredientes frescos. ¡En unos minutos estará listo!</p>
               </div>
             )}

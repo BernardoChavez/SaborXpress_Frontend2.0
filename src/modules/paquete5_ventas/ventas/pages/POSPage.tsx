@@ -38,6 +38,8 @@ import { marketingApi } from '../../../../api/services/marketingService';
 import { useNavigate } from 'react-router-dom';
 import type { Categoria, Producto } from '../../../paquete3_configuracion/catalogo/types/catalogo.types';
 import TicketModal from '../components/TicketModal';
+import api from '../../../../api/axios';
+import { MesaSelectorModal, type SelectedMesaInfo } from '../../../paquete10_mesas_reservas_resenas/components/MesaSelectorModal';
 
 interface CartItem {
   id: number;
@@ -62,6 +64,8 @@ const POSPage = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [metodoPago, setMetodoPago] = useState<'Efectivo' | 'QR' | 'Tarjeta'>('Efectivo');
   const [tipoEntrega, setTipoEntrega] = useState<'Mesa' | 'Llevar'>('Mesa');
+  const [isMesaModalOpen, setIsMesaModalOpen] = useState(false);
+  const [selectedMesaInfo, setSelectedMesaInfo] = useState<SelectedMesaInfo | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Estados Efectivo
@@ -305,6 +309,16 @@ const POSPage = () => {
         email_cliente: emailCliente
       });
 
+      if (tipoEntrega === 'Mesa' && selectedMesaInfo?.id) {
+        try {
+          await api.put(`/mesas/${selectedMesaInfo.id}`, {
+            estado: 'ocupada'
+          });
+        } catch (e) {
+          console.error("Error al ocupar la mesa:", e);
+        }
+      }
+
       try {
         const ticketData = await ventaService.getTicket(res.venta.id);
         if (ticketData && ticketData.ticket_text) {
@@ -318,6 +332,7 @@ const POSPage = () => {
       setCart([]);
       setShowCheckout(false);
       resetPagos();
+      setSelectedMesaInfo(null);
     } catch (e) {
       alert('Error al procesar venta');
     } finally {
@@ -640,11 +655,34 @@ const POSPage = () => {
                                     <Utensils size={18}/>
                                     <span className="font-black text-xs md:text-sm uppercase">Para Mesa</span>
                                 </button>
-                                <button onClick={() => setTipoEntrega('Llevar')} className={`flex-1 p-2 md:p-3 rounded-xl md:rounded-2xl border-2 transition-all flex items-center justify-center gap-2 md:gap-3 ${tipoEntrega === 'Llevar' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-100 hover:border-gray-200 text-gray-400'}`}>
+                                <button onClick={() => { setTipoEntrega('Llevar'); setSelectedMesaInfo(null); }} className={`flex-1 p-2 md:p-3 rounded-xl md:rounded-2xl border-2 transition-all flex items-center justify-center gap-2 md:gap-3 ${tipoEntrega === 'Llevar' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-100 hover:border-gray-200 text-gray-400'}`}>
                                     <ShoppingBag size={18}/>
                                     <span className="font-black text-xs md:text-sm uppercase">Para Llevar</span>
                                 </button>
                             </div>
+
+                            {tipoEntrega === 'Mesa' && (
+                                <div className="p-3.5 bg-orange-50/90 border-2 border-orange-200/90 rounded-2xl flex items-center justify-between transition-all shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#ff5722] text-white flex items-center justify-center shadow-md shadow-[#ff5722]/30 shrink-0">
+                                            <Utensils size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-wider text-[#ff5722]">Mesa Asignada en Salón</p>
+                                            <p className="text-xs md:text-sm font-black text-gray-800">
+                                                {selectedMesaInfo ? `${selectedMesaInfo.numero} (${selectedMesaInfo.capacidad} pers.) - ${selectedMesaInfo.zona}` : 'Ninguna mesa seleccionada'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={(e) => { e.preventDefault(); setIsMesaModalOpen(true); }}
+                                        className="px-3.5 py-2 bg-white hover:bg-[#ff5722] hover:text-white text-[#ff5722] border-2 border-orange-300 hover:border-[#ff5722] rounded-xl font-bold text-xs transition-all shadow-sm shrink-0 flex items-center gap-1.5"
+                                    >
+                                        📍 {selectedMesaInfo ? 'Cambiar' : 'Elegir Mesa'}
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Metodo Select */}
                             <div className="flex gap-4">
@@ -921,6 +959,13 @@ const POSPage = () => {
         isOpen={showTicketModal}
         onClose={() => setShowTicketModal(false)}
         ticketText={ticketText}
+      />
+
+      <MesaSelectorModal 
+        isOpen={isMesaModalOpen}
+        onClose={() => setIsMesaModalOpen(false)}
+        onSelectMesa={(mesa) => setSelectedMesaInfo(mesa)}
+        selectedMesaId={selectedMesaInfo?.id}
       />
     </div>
   );

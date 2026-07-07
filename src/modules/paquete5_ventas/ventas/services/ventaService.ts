@@ -1,7 +1,8 @@
 import axiosInstance from '../../../../api/axios';
 
 export interface VentaDetalleDto {
-    id_producto: number;
+    id_producto?: number | null;
+    id_combo?: number | null;
     cantidad: number;
     precio_unitario: number;
 }
@@ -9,7 +10,7 @@ export interface VentaDetalleDto {
 export interface CreateVentaDto {
     metodo_pago: 'Efectivo' | 'QR';
     tipo_entrega: 'Mesa' | 'Llevar';
-    codigo_qr?: string;
+    codigo_qr?: string | null;
     detalles: VentaDetalleDto[];
     VentaEstado?: string;
     requiere_factura?: boolean;

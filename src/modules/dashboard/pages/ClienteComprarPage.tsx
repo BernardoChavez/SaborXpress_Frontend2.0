@@ -10,10 +10,16 @@ import type { Categoria, Producto } from '../../paquete3_configuracion/catalogo/
 import { marketingApi } from '../../../api/services/marketingService';
 import TicketModal from '../../paquete5_ventas/ventas/components/TicketModal';
 import { useNavigate } from 'react-router-dom';
+import api from '../../../api/axios';
+import { MesaSelectorModal, type SelectedMesaInfo } from '../../paquete10_mesas_reservas_resenas/components/MesaSelectorModal';
 import { Gift } from 'lucide-react';
 
-interface CartItem extends Producto {
+interface CartItem extends Partial<Producto> {
+  id: number;
+  nombre: string;
+  precio_venta: number;
   cantidad: number;
+  isCombo?: boolean;
 }
 
 const ClienteComprarPage = () => {
@@ -30,6 +36,9 @@ const ClienteComprarPage = () => {
   // Checkout & Pasarela
   const [showCheckout, setShowCheckout] = useState(false);
   const [metodoPago, setMetodoPago] = useState<'Tarjeta' | 'QR'>('Tarjeta');
+  const [tipoEntrega, setTipoEntrega] = useState<'Mesa' | 'Llevar'>('Mesa');
+  const [isMesaModalOpen, setIsMesaModalOpen] = useState(false);
+  const [selectedMesaInfo, setSelectedMesaInfo] = useState<SelectedMesaInfo | null>(null);
   const [submitting, setSubmitting] = useState(false);
   
   // Estados QR
@@ -273,7 +282,7 @@ const ClienteComprarPage = () => {
     try {
       const res = await ventaService.registrar({
         metodo_pago: 'QR', // Internamente la bd soporta QR o Efectivo. Asumimos QR para online.
-        tipo_entrega: 'Llevar',
+        tipo_entrega: tipoEntrega,
         codigo_qr: metodoPago === 'Tarjeta' ? 'Tarjeta-Web' : 'QR-Web', 
         detalles: calculatedCart.map(i => ({
           id_producto: i.isCombo ? null : i.id,
@@ -288,6 +297,16 @@ const ClienteComprarPage = () => {
         email_cliente: emailCliente
       });
 
+      if (tipoEntrega === 'Mesa' && selectedMesaInfo?.id) {
+        try {
+          await api.put(`/mesas/${selectedMesaInfo.id}`, {
+            estado: 'ocupada'
+          });
+        } catch (e) {
+          console.error("Error al ocupar mesa:", e);
+        }
+      }
+
       try {
         const ticketData = await ventaService.getTicket(res.venta.id);
         if (ticketData && ticketData.ticket_text) {
@@ -301,6 +320,7 @@ const ClienteComprarPage = () => {
       setCart([]);
       setShowCheckout(false);
       resetPagos();
+      setSelectedMesaInfo(null);
     } catch (e: any) {
       console.error(e);
       alert(e.response?.data?.message || e.message || 'Error al procesar el pedido. Intente nuevamente.');
@@ -540,6 +560,41 @@ const ClienteComprarPage = () => {
                         </AnimatePresence>
 
                         <div className="flex-1 space-y-6">
+                            {/* Tipo de Entrega */}
+                            <div className="flex gap-4">
+                                <button onClick={() => setTipoEntrega('Mesa')} className={`flex-1 p-2 md:p-3 rounded-xl md:rounded-2xl border-2 transition-all flex items-center justify-center gap-2 md:gap-3 ${tipoEntrega === 'Mesa' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-100 hover:border-gray-200 text-gray-400'}`}>
+                                    <Utensils size={18}/>
+                                    <span className="font-black text-xs md:text-sm uppercase">Consumo en Local</span>
+                                </button>
+                                <button onClick={() => { setTipoEntrega('Llevar'); setSelectedMesaInfo(null); }} className={`flex-1 p-2 md:p-3 rounded-xl md:rounded-2xl border-2 transition-all flex items-center justify-center gap-2 md:gap-3 ${tipoEntrega === 'Llevar' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-gray-100 hover:border-gray-200 text-gray-400'}`}>
+                                    <ShoppingBag size={18}/>
+                                    <span className="font-black text-xs md:text-sm uppercase">Para Llevar / Delivery</span>
+                                </button>
+                            </div>
+
+                            {tipoEntrega === 'Mesa' && (
+                                <div className="p-3.5 bg-orange-50/90 border-2 border-orange-200/90 rounded-2xl flex items-center justify-between transition-all shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-[#ff5722] text-white flex items-center justify-center shadow-md shadow-[#ff5722]/30 shrink-0">
+                                            <Utensils size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-wider text-[#ff5722]">Mesa Elegida por ti</p>
+                                            <p className="text-xs md:text-sm font-black text-gray-800">
+                                                {selectedMesaInfo ? `${selectedMesaInfo.numero} (${selectedMesaInfo.capacidad} pers.) - ${selectedMesaInfo.zona}` : 'Elige una mesa libre en el mapa'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={(e) => { e.preventDefault(); setIsMesaModalOpen(true); }}
+                                        className="px-3.5 py-2 bg-white hover:bg-[#ff5722] hover:text-white text-[#ff5722] border-2 border-orange-300 hover:border-[#ff5722] rounded-xl font-bold text-xs transition-all shadow-sm shrink-0 flex items-center gap-1.5"
+                                    >
+                                        📍 {selectedMesaInfo ? 'Cambiar' : 'Ver Mapa'}
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Metodo Select */}
                             <div className="flex gap-4">
                                 <button onClick={() => { setMetodoPago('Tarjeta'); setCardError(null); }} className={`flex-1 p-3 md:p-4 rounded-2xl md:rounded-3xl border-2 transition-all flex items-center justify-center gap-2 md:gap-3 ${metodoPago === 'Tarjeta' ? 'border-purple-500 bg-purple-50' : 'border-gray-100 hover:border-gray-200'}`}>
@@ -778,6 +833,13 @@ const ClienteComprarPage = () => {
           navigate('/cliente/notificaciones');
         }}
         ticketText={ticketText}
+      />
+
+      <MesaSelectorModal 
+        isOpen={isMesaModalOpen}
+        onClose={() => setIsMesaModalOpen(false)}
+        onSelectMesa={(mesa) => setSelectedMesaInfo(mesa)}
+        selectedMesaId={selectedMesaInfo?.id}
       />
     </div>
   );

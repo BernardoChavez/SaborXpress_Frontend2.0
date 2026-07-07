@@ -17,7 +17,6 @@ const UsuariosTable = ({ usuarios, onEdit, onDelete }: UsuariosTableProps) => {
   if (usuarios.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
-        <p className="text-5xl mb-3">👤</p>
         <p className="font-medium">No hay usuarios registrados</p>
       </div>
     );
