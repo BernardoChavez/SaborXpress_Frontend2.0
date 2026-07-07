@@ -63,29 +63,29 @@ const TableShapeSelect = ({ mesa, isSelected, onSelect }: { mesa: any, isSelecte
           onSelect();
         }
       }}
-      className={`flex flex-col items-center justify-center p-3 transition-transform ${
+      className={`flex flex-col items-center justify-center p-2 sm:p-3 transition-transform ${
         isLibre || isSelected ? 'cursor-pointer hover:scale-105 group' : 'cursor-not-allowed opacity-75'
       }`}
     >
       <div className="flex items-center justify-center">
-        <div className="flex flex-col mr-1.5">{renderChairs('left')}</div>
+        <div className="flex flex-col mr-1 sm:mr-1.5">{renderChairs('left')}</div>
         
         <div 
-          className="w-20 flex flex-col items-center justify-center rounded-2xl shadow-md transition-all duration-200 relative border border-black/5" 
+          className="w-16 sm:w-20 flex flex-col items-center justify-center rounded-2xl shadow-md transition-all duration-200 relative border border-black/5" 
           style={{ 
-            height: `${Math.max(capacidad * 14, 65)}px`,
+            height: `${Math.max(capacidad * 14, 60)}px`,
             backgroundColor: tableBg 
           }}
         >
           <span 
-            className="text-lg font-black tracking-tight" 
+            className="text-base sm:text-lg font-black tracking-tight" 
             style={{ color: textColor }}
           >
             {mesa.numero}
           </span>
           
           <span 
-            className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-1 shadow-inner"
+            className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1 sm:px-1.5 py-0.5 rounded-full mt-1 shadow-inner text-center leading-none"
             style={{ 
               backgroundColor: isSelected ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.7)',
               color: isSelected ? '#ffffff' : textColor 
@@ -95,9 +95,9 @@ const TableShapeSelect = ({ mesa, isSelected, onSelect }: { mesa: any, isSelecte
           </span>
         </div>
 
-        <div className="flex flex-col ml-1.5">{renderChairs('right')}</div>
+        <div className="flex flex-col ml-1 sm:ml-1.5">{renderChairs('right')}</div>
       </div>
-      <span className="text-xs text-gray-400 font-medium mt-2">
+      <span className="text-[11px] sm:text-xs text-gray-400 font-medium mt-2 text-center">
         {capacidad} pers. {!isLibre && !isSelected && '🔒'}
       </span>
     </div>
@@ -181,24 +181,25 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
       size="4xl" 
       scrollBehavior="inside"
       backdrop="blur"
+      placement="auto"
       classNames={{
-        wrapper: "z-[999999]",
+        wrapper: "z-[999999] p-2 sm:p-4 md:p-6",
         backdrop: "z-[999998] bg-black/60 backdrop-blur-md",
-        base: "bg-white text-gray-900 shadow-2xl border border-gray-200 z-[999999]"
+        base: "bg-white text-gray-900 shadow-2xl border border-gray-200 z-[999999] m-1 sm:m-auto max-h-[95vh] w-full"
       }}
     >
-      <ModalContent className="rounded-[2.5rem] bg-white text-gray-900 shadow-2xl overflow-hidden">
-        <ModalHeader className="flex flex-col gap-1 p-6 border-b border-gray-100 bg-white">
-          <div className="flex items-center gap-2 text-xl font-black text-gray-900">
-            <MapPin className="text-[#ff5722]" size={24} />
-            Selecciona una Mesa Libre para el Consumo
+      <ModalContent className="rounded-3xl sm:rounded-[2.5rem] bg-white text-gray-900 shadow-2xl overflow-hidden">
+        <ModalHeader className="flex flex-col gap-1 p-4 sm:p-6 border-b border-gray-100 bg-white">
+          <div className="flex items-center gap-2 text-lg sm:text-xl font-black text-gray-900">
+            <MapPin className="text-[#ff5722] shrink-0" size={24} />
+            <span className="leading-tight">Selecciona una Mesa Libre para el Consumo</span>
           </div>
           <p className="text-xs font-normal text-gray-500">
             Haz clic en una mesa en color claro (Libre) para asignarla al pedido en curso.
           </p>
         </ModalHeader>
 
-        <ModalBody className="p-6 bg-slate-100">
+        <ModalBody className="p-3 sm:p-6 bg-slate-100">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16">
               <Spinner size="lg" color="primary" label="Cargando disponibilidad del salón..." />
@@ -206,7 +207,7 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
           ) : (
             <div className="space-y-6">
               {/* Pestañas de Zonas */}
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
                 {zonas.map(zona => {
                   const isActive = selectedZona === zona.id;
                   return (
@@ -214,7 +215,7 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
                       key={zona.id} 
                       radius="full"
                       size="md"
-                      className={`font-bold px-5 h-10 transition-all ${
+                      className={`font-bold px-4 sm:px-5 h-10 transition-all shrink-0 ${
                         isActive 
                           ? 'bg-[#ff5722] text-white shadow-md shadow-[#ff5722]/30' 
                           : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
@@ -229,11 +230,11 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
               </div>
 
               {/* Leyenda rápida */}
-              <div className="flex flex-wrap items-center gap-4 bg-white px-4 py-2.5 rounded-xl border border-gray-200/60 text-xs font-semibold text-gray-600">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 bg-white px-3 sm:px-4 py-2.5 rounded-xl border border-gray-200/60 text-[11px] sm:text-xs font-semibold text-gray-600">
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#e2e8f0]"></span> Libre (Disponible)</span>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#ff5722]"></span> Seleccionada</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#f59e0b]"></span> Reservada (No disponible)</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#64748b]"></span> Ocupada (No disponible)</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#f59e0b]"></span> Reservada</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#64748b]"></span> Ocupada</span>
               </div>
 
               {/* Contenedor del Grid por Filas */}
@@ -242,9 +243,9 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
                   const rowTables = allMesas.filter((m: any) => (m.fila || 1) === rowNum);
                   
                   return (
-                    <div key={rowNum} className="w-full bg-white rounded-2xl p-5 border border-gray-200/80 shadow-sm">
-                      <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
-                        <span className="bg-gray-800 text-white text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                    <div key={rowNum} className="w-full bg-white rounded-2xl p-3 sm:p-5 border border-gray-200/80 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-0 mb-4 pb-2 border-b border-gray-100">
+                        <span className="bg-gray-800 text-white text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider w-fit">
                           Fila {rowNum}
                         </span>
                         <span className="text-xs text-gray-400 font-medium">
@@ -252,7 +253,7 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-8 min-h-[120px]">
+                      <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 md:gap-8 min-h-[120px]">
                         {rowTables.map((mesa: any) => (
                           <TableShapeSelect
                             key={mesa.id}
@@ -270,29 +271,29 @@ export const MesaSelectorModal: React.FC<MesaSelectorModalProps> = ({
           )}
         </ModalBody>
 
-        <ModalFooter className="p-4 border-t border-gray-100 bg-white flex items-center justify-between">
-          <div>
+        <ModalFooter className="p-3 sm:p-4 border-t border-gray-100 bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="min-w-0">
             {tempSelectedTable ? (
-              <div className="flex items-center gap-2 text-sm font-bold text-gray-800 bg-orange-50 px-3.5 py-2 rounded-xl border border-orange-200">
-                <CheckCircle2 className="text-[#ff5722]" size={18} />
-                <span>
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-800 bg-orange-50 px-3 py-2 rounded-xl border border-orange-200">
+                <CheckCircle2 className="text-[#ff5722] shrink-0" size={18} />
+                <span className="truncate sm:whitespace-normal">
                   Seleccionada: <strong className="text-[#ff5722]">{tempSelectedTable.numero}</strong> ({tempSelectedTable.capacidad} pers.) - {selectedZonaData?.nombre}
                 </span>
               </div>
             ) : (
-              <span className="text-xs text-gray-400 font-medium">Ninguna mesa seleccionada aún</span>
+              <span className="text-xs text-gray-400 font-medium block text-center sm:text-left">Ninguna mesa seleccionada aún</span>
             )}
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="flat" color="default" onPress={onClose} className="font-bold">
+          <div className="flex gap-2 justify-end sm:justify-start">
+            <Button variant="flat" color="default" onPress={onClose} className="font-bold flex-1 sm:flex-initial">
               Cancelar
             </Button>
             <Button 
               color="primary" 
               onPress={handleConfirm} 
               isDisabled={!tempSelectedTable}
-              className="bg-[#ff5722] font-bold text-white shadow-md shadow-[#ff5722]/30"
+              className="bg-[#ff5722] font-bold text-white shadow-md shadow-[#ff5722]/30 flex-1 sm:flex-initial"
             >
               Confirmar Mesa
             </Button>

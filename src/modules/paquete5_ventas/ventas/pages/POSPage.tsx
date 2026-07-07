@@ -662,14 +662,14 @@ const POSPage = () => {
                             </div>
 
                             {tipoEntrega === 'Mesa' && (
-                                <div className="p-3.5 bg-orange-50/90 border-2 border-orange-200/90 rounded-2xl flex items-center justify-between transition-all shadow-sm">
-                                    <div className="flex items-center gap-3">
+                                <div className="p-3 sm:p-3.5 bg-orange-50/90 border-2 border-orange-200/90 rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-all shadow-sm">
+                                    <div className="flex items-center gap-3 min-w-0">
                                         <div className="w-10 h-10 rounded-xl bg-[#ff5722] text-white flex items-center justify-center shadow-md shadow-[#ff5722]/30 shrink-0">
                                             <Utensils size={20} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-[9px] font-black uppercase tracking-wider text-[#ff5722]">Mesa Asignada en Salón</p>
-                                            <p className="text-xs md:text-sm font-black text-gray-800">
+                                            <p className="text-xs md:text-sm font-black text-gray-800 truncate sm:whitespace-normal">
                                                 {selectedMesaInfo ? `${selectedMesaInfo.numero} (${selectedMesaInfo.capacidad} pers.) - ${selectedMesaInfo.zona}` : 'Ninguna mesa seleccionada'}
                                             </p>
                                         </div>
@@ -677,7 +677,7 @@ const POSPage = () => {
                                     <button 
                                         type="button"
                                         onClick={(e) => { e.preventDefault(); setIsMesaModalOpen(true); }}
-                                        className="px-3.5 py-2 bg-white hover:bg-[#ff5722] hover:text-white text-[#ff5722] border-2 border-orange-300 hover:border-[#ff5722] rounded-xl font-bold text-xs transition-all shadow-sm shrink-0 flex items-center gap-1.5"
+                                        className="w-full sm:w-auto justify-center px-3.5 py-2 bg-white hover:bg-[#ff5722] hover:text-white text-[#ff5722] border-2 border-orange-300 hover:border-[#ff5722] rounded-xl font-bold text-xs transition-all shadow-sm shrink-0 flex items-center gap-1.5"
                                     >
                                         📍 {selectedMesaInfo ? 'Cambiar' : 'Elegir Mesa'}
                                     </button>
